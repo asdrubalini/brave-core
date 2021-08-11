@@ -27,11 +27,24 @@ export interface PublisherInfo {
   supportedWalletProviders: ExternalWalletProvider[]
 }
 
+interface Settings {
+  adsPerHour: number
+  autoContributeAmount: number
+}
+
+interface Options {
+  autoContributeAmounts: number[]
+}
+
 export interface HostState {
+  rewardsEnabled: boolean
   balance: number
+  settings: Settings
+  options: Options
   exchangeInfo: ExchangeInfo
   earningsInfo: EarningsInfo
   publisherInfo: PublisherInfo | null
+  externalWalletProviders: ExternalWalletProvider[]
   externalWallet: ExternalWallet | null
   summaryData: RewardsSummaryData
   notifications: Notification[]
@@ -47,9 +60,12 @@ export interface Host {
   state: HostState
   addListener: (callback: HostListener) => () => void
   getString: (key: string) => string
+  enableRewards: () => void
   openRewardsSettings: () => void
   refreshPublisherStatus: () => void
   setIncludeInAutoContribute: (include: boolean) => void
+  setAutoContributeAmount: (amount: number) => void
+  setAdsPerHour: (adsPerHour: number) => void
   hidePublisherUnverifiedNote: () => void
   handleMonthlyTipAction: (action: MonthlyTipAction) => void
   handleExternalWalletAction: (action: ExternalWalletAction) => void

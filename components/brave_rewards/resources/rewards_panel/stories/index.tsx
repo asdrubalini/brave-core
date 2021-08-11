@@ -27,6 +27,15 @@ const locale = {
 
 function createHost (): Host {
   const stateManager = createStateManager<HostState>({
+    rewardsEnabled: false,
+    settings: {
+      adsPerHour: 3,
+      autoContributeAmount: 5
+    },
+    options: {
+      autoContributeAmounts: [1, 5, 10, 15]
+    },
+    externalWalletProviders: ['uphold', 'gemini'],
     hidePublisherUnverifiedNote: false,
     balance: 10.2,
     exchangeInfo: {
@@ -91,6 +100,30 @@ function createHost (): Host {
 
     refreshPublisherStatus () {
       console.log('refreshPublisherStatus')
+    },
+
+    enableRewards () {
+      stateManager.update({
+        rewardsEnabled: true
+      })
+    },
+
+    setAutoContributeAmount (amount) {
+      stateManager.update({
+        settings: {
+          ...stateManager.getState().settings,
+          autoContributeAmount: amount
+        }
+      })
+    },
+
+    setAdsPerHour (adsPerHour) {
+      stateManager.update({
+        settings: {
+          ...stateManager.getState().settings,
+          adsPerHour
+        }
+      })
     },
 
     setIncludeInAutoContribute (enabled) {

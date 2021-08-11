@@ -3,9 +3,11 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 import { localeStrings as walletCardStrings } from '../../shared/components/wallet_card/stories/locale_strings'
+import { localeStrings as onboardingStrings } from '../../shared/components/onboarding/stories/locale_strings'
 
 export const localeStrings = {
   ...walletCardStrings,
+  ...onboardingStrings,
 
   summary: 'Summary',
   tip: 'Tip',

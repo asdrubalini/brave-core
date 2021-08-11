@@ -26,6 +26,7 @@ export interface RewardsSummaryData {
 
 interface Props {
   data: RewardsSummaryData
+  hideAdEarnings: boolean
   earningsLastMonth: number
   nextPaymentDate: Date
   exchangeRate: number
@@ -71,7 +72,15 @@ export function RewardsSummary (props: Props) {
             </thead>
             <tbody>
             {renderRow('walletTotalGrantsClaimed', data.grantClaims)}
-            {renderRow('walletRewardsFromAds', data.adEarnings)}
+            {
+              // Ad earnings may be hidden to account for the fact that earnings
+              // are directly transfered to users that have linked external
+              // wallets, and the client may not have knowledge of those
+              // transfer amounts. In such a case, displaying zero would be
+              // misleading.
+              !props.hideAdEarnings &&
+                renderRow('walletRewardsFromAds', data.adEarnings)
+            }
             {renderRow('walletAutoContribute', data.autoContributions)}
             {renderRow('walletOneTimeTips', data.oneTimeTips)}
             {renderRow('walletMonthlyTips', data.monthlyTips)}

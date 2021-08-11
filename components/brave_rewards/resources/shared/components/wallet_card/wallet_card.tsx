@@ -102,6 +102,7 @@ export function WalletCard (props: Props) {
               </styles.addFunds>
               <RewardsSummary
                 data={props.summaryData}
+                hideAdEarnings={Boolean(props.externalWallet)}
                 earningsLastMonth={props.earningsLastMonth}
                 nextPaymentDate={props.nextPaymentDate}
                 exchangeRate={props.exchangeRate}
