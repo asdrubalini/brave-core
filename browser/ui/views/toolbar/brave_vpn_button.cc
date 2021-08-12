@@ -19,6 +19,7 @@
 #include "chrome/browser/themes/theme_properties.h"
 #include "chrome/browser/ui/layout_constants.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_ink_drop_util.h"
+#include "content/public/browser/navigation_controller.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
 #include "ui/gfx/paint_vector_icon.h"
@@ -27,6 +28,66 @@
 #include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/controls/highlight_path_generator.h"
+
+VpnLoginStatusDelegate::VpnLoginStatusDelegate() = default;
+VpnLoginStatusDelegate::~VpnLoginStatusDelegate() = default;
+
+void VpnLoginStatusDelegate::UpdateTargetURL(content::WebContents* source,
+    const GURL& url) {
+  LOG(ERROR) << "BSC]] UpdateTargetURL\nurl=" << url;
+}
+
+constexpr int kVpnLoginStatusIsolatedWorldId =
+    content::ISOLATED_WORLD_ID_CONTENT_END + 1;
+
+void VpnLoginStatusDelegate::LoadingStateChanged(content::WebContents* source,
+                                                 bool to_different_document) {
+  LOG(ERROR) << "BSC]] LoadingStateChanged\nto_different_document="
+             << to_different_document << "\nIsLoading=" << source->IsLoading();
+  if (!source->IsLoading()) {
+    LOG(ERROR) << "BSC]] FINISHED LOADING";
+  }
+}
+
+bool VpnLoginStatusDelegate::DidAddMessageToConsole(
+      content::WebContents* source,
+      blink::mojom::ConsoleMessageLevel log_level,
+      const std::u16string& message,
+      int32_t line_no,
+      const std::u16string& source_id) {
+  LOG(ERROR) << "BSC]] DidAddMessageToConsole\nmessage=" << message;
+
+  std::size_t found = message.find(u"rewards sdk initialized");
+  if (found != std::u16string::npos) {
+    LOG(ERROR) << "BSC]] SDK is initialized! Try to get reference to "
+                  "`navigator.brave.skus`";
+    // I think this is having a problem with the isolated world bit.
+    const char16_t kGetTheCookie[] = uR"(
+let retries = 10;
+let wait_for_sdk_id = window.setInterval(() => {
+  let sku_sdk = navigator.brave.skus;
+  if (sku_sdk) {
+    sku_sdk.prepare_credentials_presentation('talk.brave.software', '*').then((response) => {
+      console.log('BSC]]', response);
+    });
+    window.clearInterval(wait_for_sdk_id);
+  } else {
+    retries--;
+    if (retries <= 0) {
+      console.log('BSC]] giving up')
+      window.clearInterval(wait_for_sdk_id);
+    }
+  }
+}, 1000);
+)";
+    std::u16string get_my_cookie(kGetTheCookie);
+    auto* main_frame = source->GetMainFrame();
+    main_frame->ExecuteJavaScriptInIsolatedWorld(
+        get_my_cookie, {}, kVpnLoginStatusIsolatedWorldId);
+    return false;
+  }
+  return true;
+}
 
 namespace {
 
@@ -75,8 +136,14 @@ BraveVPNButton::BraveVPNButton(Profile* profile)
   SetHorizontalAlignment(gfx::ALIGN_LEFT);
 
   UpdateButtonState();
-}
 
+  // USED TO CHECK IF THEY ARE LOGGED IN LOL
+  content::WebContents::CreateParams params(profile);
+  contents_ = content::WebContents::Create(params);
+  contents_delegate_.reset(new VpnLoginStatusDelegate);
+  contents_->SetDelegate(contents_delegate_.get());
+}
+// TODO(bsclifton): clean up contents
 BraveVPNButton::~BraveVPNButton() = default;
 
 void BraveVPNButton::OnConnectionStateChanged(bool connected) {
@@ -132,6 +199,23 @@ bool BraveVPNButton::IsConnected() {
 
 void BraveVPNButton::OnButtonPressed(const ui::Event& event) {
   ShowBraveVPNPanel();
+
+  if (contents_) {
+    GURL url = GURL("https://account.brave.software/skus/");
+    std::string extra_headers = "Authorization: Basic BASE64_ENCODED_USER:PASSWORD_HERE";
+    // content::NavigationController::LoadURLParams params(url);
+    // params.referrer = content::Referrer();
+    // params.transition_type = ui::PAGE_TRANSITION_AUTO_TOPLEVEL;
+    // params.extra_headers = extra_headers;
+    // params.initiator_origin = url::Origin::Create(GURL("https://talk.brave.software"));
+    // contents_->GetController().LoadURLWithParams(params);
+
+    contents_->GetController().LoadURL(
+      url,
+      content::Referrer(),
+      ui::PAGE_TRANSITION_AUTO_TOPLEVEL,
+      extra_headers);
+  }
 }
 
 void BraveVPNButton::ShowBraveVPNPanel() {
