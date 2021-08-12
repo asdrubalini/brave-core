@@ -30,6 +30,11 @@ export const root = styled.div`
     &:active {
       color: var(--brave-color-brandBatInteracting);
     }
+
+    &[disabled] {
+      cursor: default;
+      color: inherit;
+    }
   }
 
   .icon {
@@ -50,7 +55,7 @@ export const root = styled.div`
     color: #999EA2;
 
     button:hover {
-      color: var(--brave-palette-grey000);
+      color: var(--brave-palette-grey100);
     }
 
     .selected button {

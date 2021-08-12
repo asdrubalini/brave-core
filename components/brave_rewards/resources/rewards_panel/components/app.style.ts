@@ -9,6 +9,10 @@ export const root = styled.div`
   background: #fafcff;
   padding: 15px 13px;
   font-family: var(--brave-font-heading);
+
+  .brave-theme-dark & {
+    background: #17171f;
+  }
 `
 
 export const loading = styled.div`
@@ -17,10 +21,6 @@ export const loading = styled.div`
   align-items: center;
   justify-content: center;
   color: var(--brave-color-brandBat);
-
-  .brave-theme-dark & {
-    background: #17171f;
-  }
 
   .icon {
     flex: 0 0 auto;

@@ -38,14 +38,11 @@ export function NavBar (props: Props) {
 
   return (
     <styles.root>
-      {
-        props.canTip &&
-          <styles.tip className={selectedClass('tip')}>
-            <button onClick={clickHandler('tip')}>
-              <TipIcon /> {getString('tip')}
-            </button>
-          </styles.tip>
-      }
+      <styles.tip className={selectedClass('tip')}>
+        <button onClick={clickHandler('tip')} disabled={!props.canTip}>
+          <TipIcon /> {getString('tip')}
+        </button>
+      </styles.tip>
       <styles.summary className={selectedClass('summary')}>
         <button onClick={clickHandler('summary')}>
           <SummaryIcon /> {getString('summary')}
