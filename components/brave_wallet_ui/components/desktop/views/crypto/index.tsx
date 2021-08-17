@@ -11,8 +11,8 @@ import {
   AssetPriceInfo,
   WalletAccountType,
   AssetPriceTimeframe,
-  Network,
-  TokenInfo
+  TokenInfo,
+  EthereumChain
 } from '../../../../constants/types'
 import { TopNavOptions } from '../../../../options/top-nav-options'
 import { TopTabNav, BackupWarningBanner, AddAccountModal } from '../../'
@@ -38,7 +38,7 @@ export interface Props {
   onUpdateAccountName: (name: string) => void
   onToggleAddModal: () => void
   onUpdateVisibleTokens: (list: string[]) => void
-  onSelectNetwork: (network: Network) => void
+  onSelectNetwork: (network: EthereumChain) => void
   fetchFullTokenList: () => void
   onRemoveAccount: (address: string) => void
   onViewPrivateKey: (address: string) => void
@@ -47,6 +47,7 @@ export interface Props {
   fullAssetList: TokenInfo[]
   needsBackup: boolean
   accounts: WalletAccountType[]
+  networkList: EthereumChain[]
   selectedTimeline: AssetPriceTimeframe
   selectedPortfolioTimeline: AssetPriceTimeframe
   portfolioPriceHistory: PriceDataObjectType[]
@@ -60,7 +61,7 @@ export interface Props {
   userWatchList: string[]
   isLoading: boolean
   showAddModal: boolean
-  selectedNetwork: Network
+  selectedNetwork: EthereumChain
   isFetchingPortfolioPriceHistory: boolean
 }
 
@@ -92,6 +93,7 @@ const CryptoView = (props: Props) => {
     selectedAssetPriceHistory,
     needsBackup,
     accounts,
+    networkList,
     selectedAsset,
     portfolioBalance,
     transactions,
@@ -188,6 +190,7 @@ const CryptoView = (props: Props) => {
         <PortfolioView
           toggleNav={toggleNav}
           accounts={accounts}
+          networkList={networkList}
           onChangeTimeline={onChangeTimeline}
           selectedAssetPriceHistory={selectedAssetPriceHistory}
           selectedTimeline={selectedTimeline}
