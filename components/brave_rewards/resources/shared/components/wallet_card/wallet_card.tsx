@@ -27,7 +27,7 @@ interface Props {
   externalWallet: ExternalWallet | null
   earningsThisMonth: number
   earningsLastMonth: number
-  nextPaymentDate: Date
+  nextPaymentDate: number
   exchangeRate: number
   exchangeCurrency?: string
   showSummary: boolean

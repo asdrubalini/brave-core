@@ -11,6 +11,7 @@ import { ToggleButton } from './toggle_button'
 import { MonthlyTipView } from './monthly_tip_view'
 import { NewTabLink } from '../../shared/components/new_tab_link'
 import { VerifiedIcon } from './icons/verified_icon'
+import { LoadingIcon } from './icons/loading_icon'
 
 import * as styles from './publisher_card.style'
 
@@ -22,13 +23,18 @@ export function PublisherCard () {
 
   const [publisherInfo, setPublisherInfo] =
     React.useState(host.state.publisherInfo)
+  const [publisherRefreshing, setPublisherRefreshing] =
+    React.useState(host.state.publisherRefreshing)
   const [hidePublisherUnverifiedNote, setHidePublisherUnverifiedNote] =
     React.useState(host.state.hidePublisherUnverifiedNote)
   const [externalWallet, setExternalWallet] =
     React.useState(host.state.externalWallet)
 
+  const [showPublisherLoading, setShowPublisherLoading] = React.useState(false)
+
   useHostListener(host, (state) => {
     setPublisherInfo(state.publisherInfo)
+    setPublisherRefreshing(state.publisherRefreshing)
     setHidePublisherUnverifiedNote(host.state.hidePublisherUnverifiedNote)
     setExternalWallet(state.externalWallet)
   })
@@ -103,6 +109,12 @@ export function PublisherCard () {
 
   function onRefreshClick (evt: React.UIEvent) {
     evt.preventDefault()
+
+    // Show the publisher loading state for a minimum amount of time in order
+    // to indicate activity to the user.
+    setShowPublisherLoading(true)
+    setTimeout(() => { setShowPublisherLoading(false) }, 500)
+
     host.refreshPublisherStatus()
   }
 
@@ -126,9 +138,13 @@ export function PublisherCard () {
           <styles.status>
             {renderStatusMessage()}
             <styles.refreshStatus>
-              <a href='#' onClick={onRefreshClick}>
-                {getString('refreshStatus')}
-              </a>
+              {
+                publisherRefreshing || showPublisherLoading
+                  ? <LoadingIcon />
+                  : <a href='#' onClick={onRefreshClick}>
+                      {getString('refreshStatus')}
+                    </a>
+              }
             </styles.refreshStatus>
           </styles.status>
         </styles.name>
@@ -162,7 +178,7 @@ export function PublisherCard () {
         </styles.monthlyContribution>
       </styles.contribution>
       <styles.tipAction>
-        <button>
+        <button onClick={host.sendTip}>
           {getString('sendTip')}
         </button>
       </styles.tipAction>

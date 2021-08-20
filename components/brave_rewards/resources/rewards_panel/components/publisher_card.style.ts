@@ -83,6 +83,14 @@ export const refreshStatus = styled.span`
   padding-left: 4px;
   margin-left: 5px;
 
+  .icon {
+    height: 13px;
+    width: auto;
+    margin-bottom: 2px;
+    margin-left: 2px;
+    color: var(--brave-color-brandBat);
+  }
+
   .brave-theme-dark & {
     border-left-color: var(--brave-palette-grey800);
   }

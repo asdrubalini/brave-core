@@ -22,11 +22,15 @@ export const card = styled.div`
   position: relative;
   margin: 0 10px 20px;
   z-index: 0;
-  transform: translate(0, 0);
-  transition: all 250ms ease-out;
 
-  &.offstage {
-    transform: translate(0, calc(100% + 20px));
+  animation-name: slide-in;
+  animation-easing-function: ease-out;
+  animation-duration: 250ms;
+  animation-fill-mode: both;
+
+  @keyframes slide-in {
+    from { transform: translate(0, calc(100% + 20px)); }
+    to { transform: translate(0, 0); }
   }
 `
 

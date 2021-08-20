@@ -28,7 +28,7 @@ interface Props {
   data: RewardsSummaryData
   hideAdEarnings: boolean
   earningsLastMonth: number
-  nextPaymentDate: Date
+  nextPaymentDate: number
   exchangeRate: number
   exchangeCurrency?: string
 }

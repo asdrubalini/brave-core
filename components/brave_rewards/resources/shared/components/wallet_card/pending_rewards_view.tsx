@@ -14,7 +14,7 @@ import * as styles from './pending_rewards_view.style'
 
 interface Props {
   amount: number
-  nextPaymentDate: Date
+  nextPaymentDate: number
 }
 
 export function PendingRewardsView (props: Props) {

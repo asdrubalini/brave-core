@@ -46,7 +46,7 @@ export function Wallet () {
 
   const externalWallet: ExternalWallet = {
     provider: 'uphold',
-    status: 'pending',
+    status: 'verified',
     username: 'brave123'
   }
 
@@ -62,7 +62,7 @@ export function Wallet () {
             externalWallet={externalWallet}
             earningsThisMonth={0}
             earningsLastMonth={1}
-            nextPaymentDate={nextPaymentDate}
+            nextPaymentDate={nextPaymentDate.getTime()}
             exchangeRate={0.75}
             exchangeCurrency={'USD'}
             showSummary={knobs.boolean('Show Summary', true)}

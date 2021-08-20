@@ -15,6 +15,8 @@ import { NotificationCard } from '../components/notification_card'
 
 import { App } from '../components/app'
 
+import grantCaptchaImageURL from './grant_captcha_image.png'
+
 export default {
   title: 'Rewards/Panel'
 }
@@ -27,13 +29,26 @@ const locale = {
 
 function createHost (): Host {
   const stateManager = createStateManager<HostState>({
-    rewardsEnabled: false,
+    loading: false,
+    rewardsEnabled: true,
     settings: {
       adsPerHour: 3,
       autoContributeAmount: 5
     },
     options: {
       autoContributeAmounts: [1, 5, 10, 15]
+    },
+    grantCaptchaInfo: {
+      id: '123',
+      imageURL: grantCaptchaImageURL,
+      hint: 'square',
+      status: 'pending',
+      grantInfo: {
+        id: 'grant123',
+        expiresAt: Date.now() + 120_000,
+        amount: 10,
+        source: 'ads'
+      }
     },
     externalWalletProviders: ['uphold', 'gemini'],
     hidePublisherUnverifiedNote: false,
@@ -45,9 +60,10 @@ function createHost (): Host {
     earningsInfo: {
       earningsThisMonth: 1.2,
       earningsLastMonth: 2.4,
-      nextPaymentDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3)
+      nextPaymentDate: Date.now() + 1000 * 60 * 60 * 24 * 3
     },
     publisherInfo: {
+      id: 'brave.com',
       name: 'brave.com',
       icon: 'https://brave.com/static-assets/images/brave-favicon.png',
       registered: true,
@@ -56,6 +72,7 @@ function createHost (): Host {
       monthlyContribution: 5,
       supportedWalletProviders: []
     },
+    publisherRefreshing: false,
     externalWallet: {
       provider: 'uphold',
       username: 'brave123',
@@ -148,6 +165,10 @@ function createHost (): Host {
       console.log('openRewardsSettings')
     },
 
+    sendTip () {
+      console.log('sendTip')
+    },
+
     handleMonthlyTipAction (action) {
       switch (action) {
         case 'update': {
@@ -185,15 +206,29 @@ function createHost (): Host {
       })
     },
 
-    clearNotifications () {
-      stateManager.update({
-        notifications: []
-      })
-    },
-
     setNotificationsViewed () {
       stateManager.update({
         notificationsLastViewed: Date.now()
+      })
+    },
+
+    solveGrantCaptcha (solution) {
+      console.log('solveGrantCaptcha', solution)
+      const { grantCaptchaInfo } = stateManager.getState()
+      if (!grantCaptchaInfo) {
+        return
+      }
+      stateManager.update({
+        grantCaptchaInfo: {
+          ...grantCaptchaInfo,
+          status: 'passed'
+        }
+      })
+    },
+
+    clearGrantCaptcha () {
+      stateManager.update({
+        grantCaptchaInfo: null
       })
     }
   }

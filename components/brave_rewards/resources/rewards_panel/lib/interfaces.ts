@@ -6,18 +6,19 @@ import { ExternalWallet, ExternalWalletProvider } from '../../shared/lib/externa
 import { ExternalWalletAction, RewardsSummaryData } from '../../shared/components/wallet_card'
 import { Notification, NotificationAction } from '../../shared/components/notifications'
 
-interface ExchangeInfo {
+export interface ExchangeInfo {
   currency: string
   rate: number
 }
 
-interface EarningsInfo {
-  nextPaymentDate: Date
+export interface EarningsInfo {
+  nextPaymentDate: number
   earningsThisMonth: number
   earningsLastMonth: number
 }
 
 export interface PublisherInfo {
+  id: string
   name: string
   icon: string
   registered: boolean
@@ -27,23 +28,43 @@ export interface PublisherInfo {
   supportedWalletProviders: ExternalWalletProvider[]
 }
 
-interface Settings {
+export type GrantCaptchaStatus = 'pending' | 'passed' | 'failed' | 'error'
+
+export interface GrantInfo {
+  id: string
+  source: 'ads' | 'ugp'
+  amount: number
+  expiresAt: number | null
+}
+
+export interface GrantCaptchaInfo {
+  id: string
+  imageURL: string
+  hint: string
+  status: GrantCaptchaStatus
+  grantInfo: GrantInfo
+}
+
+export interface Settings {
   adsPerHour: number
   autoContributeAmount: number
 }
 
-interface Options {
+export interface Options {
   autoContributeAmounts: number[]
 }
 
 export interface HostState {
+  loading: boolean
   rewardsEnabled: boolean
   balance: number
   settings: Settings
   options: Options
+  grantCaptchaInfo: GrantCaptchaInfo | null
   exchangeInfo: ExchangeInfo
   earningsInfo: EarningsInfo
   publisherInfo: PublisherInfo | null
+  publisherRefreshing: boolean
   externalWalletProviders: ExternalWalletProvider[]
   externalWallet: ExternalWallet | null
   summaryData: RewardsSummaryData
@@ -67,10 +88,12 @@ export interface Host {
   setAutoContributeAmount: (amount: number) => void
   setAdsPerHour: (adsPerHour: number) => void
   hidePublisherUnverifiedNote: () => void
+  sendTip: () => void
   handleMonthlyTipAction: (action: MonthlyTipAction) => void
   handleExternalWalletAction: (action: ExternalWalletAction) => void
   handleNotificationAction: (action: NotificationAction) => void
   dismissNotification: (notification: Notification) => void
-  clearNotifications: () => void
   setNotificationsViewed: () => void
+  solveGrantCaptcha: (solution: { x: number, y: number }) => void
+  clearGrantCaptcha: () => void
 }

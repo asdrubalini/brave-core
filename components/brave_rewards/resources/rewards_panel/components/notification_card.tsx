@@ -65,7 +65,7 @@ function Action (props: NotificationActionViewProps) {
   return (
     <styles.action>
       <button onClick={onActionClick}>
-        {props.label || getString('notificationOK')}
+        {props.label || getString('ok')}
       </button>
     </styles.action>
   )
@@ -106,7 +106,7 @@ export function NotificationCard (props: Props) {
         />
         <styles.dismiss>
           <button onClick={dismissNotification}>
-            {getString('notificationDismiss')}
+            {getString('dismiss')}
           </button>
         </styles.dismiss>
       </styles.content>
