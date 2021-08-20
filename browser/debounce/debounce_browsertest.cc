@@ -5,6 +5,7 @@
 
 #include "base/base64url.h"
 #include "base/path_service.h"
+#include "base/scoped_observation.h"
 #include "base/strings/stringprintf.h"
 #include "base/test/scoped_feature_list.h"
 #include "brave/browser/brave_browser_process.h"
@@ -35,7 +36,7 @@ class DebounceComponentInstallerWaiter
   explicit DebounceComponentInstallerWaiter(
       DebounceComponentInstaller* component_installer)
       : component_installer_(component_installer), scoped_observer_(this) {
-    scoped_observer_.Add(component_installer_);
+    scoped_observer_.Observe(component_installer_);
   }
   DebounceComponentInstallerWaiter(const DebounceComponentInstallerWaiter&) =
       delete;
@@ -53,9 +54,9 @@ class DebounceComponentInstallerWaiter
 
   DebounceComponentInstaller* const component_installer_;
   base::RunLoop run_loop_;
-  ScopedObserver<DebounceComponentInstaller,
+  base::ScopedObservation<DebounceComponentInstaller,
                  DebounceComponentInstaller::Observer>
-      scoped_observer_;
+  scoped_observer_{this};
 };
 
 class DebounceBrowserTest : public BaseLocalDataFilesBrowserTest {
