@@ -45,6 +45,7 @@ import {
   HardwareWalletAccount,
   HardwareWalletConnectOpts
 } from '../components/desktop/popup-modals/add-account-modal/hardware-wallet-connect/types'
+import { mockNetworks } from './mock-data/mock-networks'
 export default {
   title: 'Wallet/Desktop',
   argTypes: {
@@ -340,8 +341,13 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
     setToAsset(fromAsset)
   }
 
+<<<<<<< HEAD
   const onSubmitBuy = (asset: AccountAssetOptionType) => {
     const url = BuyAssetUrl(selectedNetwork, asset, selectedAccount, buyAmount)
+=======
+  const onSubmitBuy = (asset: AssetOptionType) => {
+    const url = BuyAssetUrl(mockNetworks[0].chainId, asset, selectedAccount, buyAmount)
+>>>>>>> a51baaa62c (Updated Allow Add Network Panel UI)
     if (url) {
       window.open(url, '_blank')
     }
@@ -536,6 +542,7 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
                               privateKey='gf65a4g6a54fg6a54fg6ad4fa5df65a4d6ff54a6sdf'
                               onDoneViewingPrivateKey={onDoneViewingPrivateKey}
                               onViewPrivateKey={onViewPrivateKey}
+                              networkList={mockNetworks}
                             />
                           )}
                         </>
@@ -592,6 +599,7 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
             buyAssetOptions={WyreAccountAssetOptions}
             sendAssetOptions={AccountAssetOptions}
             swapAssetOptions={AccountAssetOptions}
+            networkList={mockNetworks}
           />
         </WalletWidgetStandIn>
       }
