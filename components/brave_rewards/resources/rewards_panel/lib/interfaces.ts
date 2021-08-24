@@ -70,7 +70,6 @@ export interface HostState {
   summaryData: RewardsSummaryData
   notifications: Notification[]
   notificationsLastViewed: number
-  hidePublisherUnverifiedNote: boolean
 }
 
 export type HostListener = (state: HostState) => void
@@ -87,7 +86,6 @@ export interface Host {
   setIncludeInAutoContribute: (include: boolean) => void
   setAutoContributeAmount: (amount: number) => void
   setAdsPerHour: (adsPerHour: number) => void
-  hidePublisherUnverifiedNote: () => void
   sendTip: () => void
   handleMonthlyTipAction: (action: MonthlyTipAction) => void
   handleExternalWalletAction: (action: ExternalWalletAction) => void

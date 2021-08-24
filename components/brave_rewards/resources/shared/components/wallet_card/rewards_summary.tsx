@@ -17,7 +17,6 @@ const monthFormatter = new Intl.DateTimeFormat(undefined, {
 })
 
 export interface RewardsSummaryData {
-  grantClaims: number
   adEarnings: number
   autoContributions: number
   oneTimeTips: number
@@ -67,11 +66,7 @@ export function RewardsSummary (props: Props) {
       <styles.body>
         <styles.dataTable>
           <table>
-            <thead>
-              <tr><th colSpan={3}>{getString('walletHistory')}</th></tr>
-            </thead>
             <tbody>
-            {renderRow('walletTotalGrantsClaimed', data.grantClaims)}
             {
               // Ad earnings may be hidden to account for the fact that earnings
               // are directly transfered to users that have linked external

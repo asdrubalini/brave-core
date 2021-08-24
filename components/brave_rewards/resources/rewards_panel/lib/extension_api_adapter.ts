@@ -156,7 +156,6 @@ export function getRewardsSummaryData () {
 
     chrome.braveRewards.getBalanceReport(month, year, (balanceReport) => {
       resolve({
-        grantClaims: balanceReport.grant,
         adEarnings: balanceReport.ads,
         autoContributions: balanceReport.contribute,
         oneTimeTips: balanceReport.tips,
@@ -181,27 +180,49 @@ export function getNotifications () {
   })
 }
 
-export function onGrantsUpdated (callback: (grants: GrantInfo[]) => void) {
-  chrome.braveRewards.onPromotions.addListener((result, promotions) => {
-    if (result === 1) { // Error
-      return
-    }
+type GrantsUpdatedCallback = (grants: GrantInfo[]) => void
 
-    const grants: GrantInfo[] = []
-    for (const obj of promotions) {
-      const source = obj.type === 1 ? 'ads' : 'ugp'
-      grants.push({
-        id: obj.promotionId,
-        source,
-        amount: obj.amount,
-        expiresAt: obj.expiresAt * 1000 || null
-      })
-    }
+let grantResolver: GrantsUpdatedCallback | null = null
+let grantPromise: Promise<GrantInfo[]> | null = null
+let grantsUpdatedCallbacks: GrantsUpdatedCallback[] = []
 
+chrome.braveRewards.onPromotions.addListener((result, promotions) => {
+  if (result === 1) { // Error
+    return
+  }
+
+  const grants: GrantInfo[] = []
+  for (const obj of promotions) {
+    const source = obj.type === 1 ? 'ads' : 'ugp'
+    grants.push({
+      id: obj.promotionId,
+      source,
+      amount: obj.amount,
+      expiresAt: obj.expiresAt * 1000 || null
+    })
+  }
+
+  // If a caller of |getGrants| is currently waiting on a result, resolve the
+  // associated promise.
+  if (grantResolver) {
+    grantResolver(grants)
+  }
+
+  for (const callback of grantsUpdatedCallbacks) {
     callback(grants)
-  })
+  }
+})
 
-  chrome.braveRewards.fetchPromotions()
+export function onGrantsUpdated (callback: (grants: GrantInfo[]) => void) {
+  grantsUpdatedCallbacks.push(callback)
+}
+
+export function getGrants () {
+  if (!grantPromise) {
+    grantPromise = new Promise<GrantInfo[]>((r) => { grantResolver = r })
+    chrome.braveRewards.fetchPromotions()
+  }
+  return grantPromise
 }
 
 export function getRewardsEnabled () {

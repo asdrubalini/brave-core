@@ -9,6 +9,26 @@ import { RewardsOptInModal, RewardsTourModal } from '../../shared/components/onb
 import { GrantCaptchaModal } from './grant_captcha_modal'
 import { NotificationOverlay } from './notification_overlay'
 
+// Attaches a CSS class to the document body containing the name of the overlay.
+// This allows root-level style rules to expand the height of the panel if
+// necessary, based on the currently displayed overlay.
+function NamedOverlay (props: { name: string, children: React.ReactNode }) {
+  const onMountUnmount = (elem: HTMLElement | null) => {
+    const className = `panel-overlay-${props.name}`
+    if (elem) {
+      document.body.classList.add(className)
+    } else {
+      document.body.classList.remove(className)
+    }
+  }
+
+  return (
+    <div ref={onMountUnmount}>
+      {props.children}
+    </div>
+  )
+}
+
 export function PanelOverlays () {
   const host = React.useContext(HostContext)
 
@@ -37,6 +57,15 @@ export function PanelOverlays () {
     setNotificationsLastViewed(state.notificationsLastViewed)
   })
 
+  React.useEffect(() => {
+    // After the component is mounted, check for a "#tour" URL and display the
+    // rewards tour if found.
+    if ((/^#?tour$/i).test(location.hash)) {
+      setShowTour(true)
+      location.hash = ''
+    }
+  }, [])
+
   function toggleTour () {
     setShowTour(!showTour)
   }
@@ -52,33 +81,40 @@ export function PanelOverlays () {
     }
 
     return (
-      <RewardsTourModal
-        firstTimeSetup={rewardsEnabled}
-        adsPerHour={settings.adsPerHour}
-        externalWalletProvider={externalWalletProviders[0]}
-        autoContributeAmount={settings.autoContributeAmount}
-        autoContributeAmountOptions={options.autoContributeAmounts}
-        onAdsPerHourChanged={host.setAdsPerHour}
-        onAutoContributeAmountChanged={host.setAutoContributeAmount}
-        onVerifyWalletClick={onVerifyWalletClick}
-        onDone={toggleTour}
-        onClose={toggleTour}
-      />
+      <NamedOverlay name='rewards-tour'>
+        <RewardsTourModal
+          firstTimeSetup={rewardsEnabled}
+          adsPerHour={settings.adsPerHour}
+          externalWalletProvider={externalWalletProviders[0]}
+          autoContributeAmount={settings.autoContributeAmount}
+          autoContributeAmountOptions={options.autoContributeAmounts}
+          onAdsPerHourChanged={host.setAdsPerHour}
+          onAutoContributeAmountChanged={host.setAutoContributeAmount}
+          onVerifyWalletClick={onVerifyWalletClick}
+          onDone={toggleTour}
+          onClose={toggleTour}
+        />
+      </NamedOverlay>
     )
   }
 
   if (!rewardsEnabled) {
-    return <RewardsOptInModal onEnable={onEnable} onTakeTour={toggleTour} />
+    return (
+      <NamedOverlay name='opt-in'>
+        <RewardsOptInModal onEnable={onEnable} onTakeTour={toggleTour} />
+      </NamedOverlay>
+    )
   }
 
   if (grantCaptchaInfo) {
-
     return (
-      <GrantCaptchaModal
-        grantCaptchaInfo={grantCaptchaInfo}
-        onSolve={host.solveGrantCaptcha}
-        onClose={host.clearGrantCaptcha}
-      />
+      <NamedOverlay name='grant-captcha'>
+        <GrantCaptchaModal
+          grantCaptchaInfo={grantCaptchaInfo}
+          onSolve={host.solveGrantCaptcha}
+          onClose={host.clearGrantCaptcha}
+        />
+      </NamedOverlay>
     )
   }
 
@@ -88,10 +124,12 @@ export function PanelOverlays () {
 
   if (activeNotifications.length > 0) {
     return (
-      <NotificationOverlay
-        notifications={activeNotifications}
-        onClose={host.setNotificationsViewed}
-      />
+      <NamedOverlay name='notifications'>
+        <NotificationOverlay
+          notifications={activeNotifications}
+          onClose={host.setNotificationsViewed}
+        />
+      </NamedOverlay>
     )
   }
 

@@ -4,18 +4,15 @@
 
 import * as React from 'react'
 
-import { LocaleContext, formatMessage } from '../../shared/lib/locale_context'
+import { LocaleContext } from '../../shared/lib/locale_context'
 import { HostContext, useHostListener } from '../lib/host_context'
 import { MonthlyTipAction } from '../lib/interfaces'
 import { ToggleButton } from './toggle_button'
 import { MonthlyTipView } from './monthly_tip_view'
-import { NewTabLink } from '../../shared/components/new_tab_link'
 import { VerifiedIcon } from './icons/verified_icon'
 import { LoadingIcon } from './icons/loading_icon'
 
 import * as styles from './publisher_card.style'
-
-const unverifiedLearnMoreURL = 'https://brave.com/faq/#unclaimed-funds'
 
 export function PublisherCard () {
   const { getString } = React.useContext(LocaleContext)
@@ -25,18 +22,12 @@ export function PublisherCard () {
     React.useState(host.state.publisherInfo)
   const [publisherRefreshing, setPublisherRefreshing] =
     React.useState(host.state.publisherRefreshing)
-  const [hidePublisherUnverifiedNote, setHidePublisherUnverifiedNote] =
-    React.useState(host.state.hidePublisherUnverifiedNote)
-  const [externalWallet, setExternalWallet] =
-    React.useState(host.state.externalWallet)
 
   const [showPublisherLoading, setShowPublisherLoading] = React.useState(false)
 
   useHostListener(host, (state) => {
     setPublisherInfo(state.publisherInfo)
     setPublisherRefreshing(state.publisherRefreshing)
-    setHidePublisherUnverifiedNote(host.state.hidePublisherUnverifiedNote)
-    setExternalWallet(state.externalWallet)
   })
 
   if (!publisherInfo) {
@@ -61,50 +52,6 @@ export function PublisherCard () {
         <VerifiedIcon />{getString('unverifiedCreator')}
       </styles.unverified>
     )
-  }
-
-  function renderUnverifiedNote () {
-    if (!publisherInfo || hidePublisherUnverifiedNote) {
-      return null
-    }
-
-    const walletProviderNotSupported =
-      externalWallet &&
-      !publisherInfo.supportedWalletProviders.includes(externalWallet.provider)
-
-    if (!publisherInfo.registered || walletProviderNotSupported) {
-      const noteText = getString(walletProviderNotSupported
-        ? 'providerNotSupportedNote'
-        : 'unverifiedNote')
-
-      return (
-        <styles.unverifiedNote>
-          <strong>{getString('note')}:</strong>&nbsp;
-          {noteText}&nbsp;
-          {
-            formatMessage(getString('unverifiedLinks'), {
-              tags: {
-                $1: (content) =>
-                  <NewTabLink href={unverifiedLearnMoreURL} key='learn-more'>
-                    {content}
-                  </NewTabLink>,
-                $3: (content) =>
-                  <a href='#' key='hide' onClick={hideVerifiedNote}>
-                    {content}
-                  </a>
-              }
-            })
-          }
-        </styles.unverifiedNote>
-      )
-    }
-
-    return null
-  }
-
-  function hideVerifiedNote (evt: React.UIEvent) {
-    evt.preventDefault()
-    host.hidePublisherUnverifiedNote()
   }
 
   function onRefreshClick (evt: React.UIEvent) {
@@ -149,7 +96,6 @@ export function PublisherCard () {
           </styles.status>
         </styles.name>
       </styles.heading>
-      {renderUnverifiedNote()}
       <styles.attention>
         <div>{getString('attention')}</div>
         <div className='value'>

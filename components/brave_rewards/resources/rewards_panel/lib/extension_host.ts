@@ -10,8 +10,8 @@ import { getInitialState } from './initial_state'
 import { createStateManager } from '../../shared/lib/state_manager'
 
 type LocaleStorageKey =
-  'hide-publisher-unverified-note' |
-  'notifications-last-viewed'
+  'notifications-last-viewed' |
+  'catcha-grant-id'
 
 function readLocalStorage (key: LocaleStorageKey): unknown {
   try {
@@ -71,6 +71,7 @@ export function createHost (): Host {
 
   function clearGrantCaptcha () {
     stateManager.update({ grantCaptchaInfo: null })
+    writeLocalStorage('catcha-grant-id', '')
   }
 
   function loadCaptcha (grantId: string, status: GrantCaptchaStatus) {
@@ -89,6 +90,10 @@ export function createHost (): Host {
         grantInfo
       }
     })
+
+    // Store the grant ID so that if the user closes and reopens the panel they
+    // can attempt the same captcha.
+    writeLocalStorage('catcha-grant-id', grantId)
 
     chrome.braveRewards.claimPromotion(grantId, (properties) => {
       stateManager.update({
@@ -136,12 +141,21 @@ export function createHost (): Host {
     }).then(openTab, console.error)
   }
 
-  function processURL () {
-    const { hash } = window.location
-    const grantMatch = hash.match(/^#?grant_([\s\S]+)/)
+  function handleStartupParameters () {
+    const { hash } = location
+
+    const grantMatch = hash.match(/^#?grant_([\s\S]+)$/i)
     if (grantMatch) {
-      const grantId = grantMatch[1]
+      location.hash = ''
+      loadCaptcha(grantMatch[1], 'pending')
+      return
+    }
+
+    const grantId = readLocalStorage('catcha-grant-id')
+    if (grantId && typeof grantId === 'string') {
+      location.hash = ''
       loadCaptcha(grantId, 'pending')
+      return
     }
   }
 
@@ -165,17 +179,24 @@ export function createHost (): Host {
 
     */
 
-    apiAdapter.onGrantsUpdated((list) => {
+    function updateGrants (list: GrantInfo[]) {
       grants.clear()
-      // TODO(zenparsing): Handle case where |grantCaptcha.grantInfo.id| no
-      // longer references a valid grant?
       for (const grant of list) {
         grants.set(grant.id, grant)
       }
-    })
 
-    // Update the balance when a vBAT is ready.
+      // If the currently displayed grant captcha is no longer associated with
+      // an active grant, clear it.
+      const { grantCaptchaInfo } = stateManager.getState()
+      if (grantCaptchaInfo && !grants.has(grantCaptchaInfo.grantInfo.id)) {
+        clearGrantCaptcha()
+      }
+    }
+
+    apiAdapter.onGrantsUpdated(updateGrants)
+
     chrome.braveRewards.onUnblindedTokensReady.addListener(() => {
+      // Update the balance when a vBAT grant is available.
       apiAdapter.getRewardsBalance().then((balance) => {
         stateManager.update({ balance })
       }).catch(console.error)
@@ -195,17 +216,15 @@ export function createHost (): Host {
     chrome.rewardsNotifications.onNotificationDeleted.addListener(
       updateNotifications)
 
-    // TODO(zenparsing): Should we store the currently viewed captchaId in local
-    // storage, so that it can be displayed when we re-open the panel?
-
     stateManager.update({
-      hidePublisherUnverifiedNote:
-        Boolean(readLocalStorage('hide-publisher-unverified-note')),
       notificationsLastViewed:
         Number(readLocalStorage('notifications-last-viewed')) || 0
     })
 
     await Promise.all([
+      apiAdapter.getGrants().then((list) => {
+        updateGrants(list)
+      }),
       apiAdapter.getRewardsEnabled().then((rewardsEnabled) => {
         stateManager.update({ rewardsEnabled })
       }),
@@ -239,14 +258,14 @@ export function createHost (): Host {
       updatePublisherInfo()
     ])
 
-    stateManager.update({ loading: false })
+    handleStartupParameters()
 
-    processURL()
+    stateManager.update({ loading: false })
   }
 
   initialize().catch((error) => {
     console.error(error)
-    // TODO(zenparsing): Error UX
+    // TODO(zenparsing): Error UX?
   })
 
   return {
@@ -327,11 +346,6 @@ export function createHost (): Host {
           adsPerHour
         }
       })
-    },
-
-    hidePublisherUnverifiedNote () {
-      writeLocalStorage('hide-publisher-unverified-note', true)
-      stateManager.update({ hidePublisherUnverifiedNote: true })
     },
 
     sendTip () {

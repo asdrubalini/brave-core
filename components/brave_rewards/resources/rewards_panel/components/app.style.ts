@@ -7,11 +7,22 @@ import styled from 'styled-components'
 export const root = styled.div`
   width: 400px;
   background: #fafcff;
-  padding: 15px 13px;
+  padding: 13px;
   font-family: var(--brave-font-heading);
 
   .brave-theme-dark & {
     background: #17171f;
+  }
+
+  /* Expand the height of the panel for tall overlays. See
+     |panel_overlays.tsx|. */
+
+  .panel-overlay-rewards-tour & {
+    min-height: 554px;
+  }
+
+  .panel-overlay-grant-captcha & {
+    min-height: 576px;
   }
 `
 

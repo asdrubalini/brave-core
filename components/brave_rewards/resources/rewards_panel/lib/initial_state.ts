@@ -31,14 +31,12 @@ export function getInitialState (): HostState {
     externalWalletProviders: [],
     externalWallet: null,
     summaryData: {
-      grantClaims: 0,
       adEarnings: 0,
       autoContributions: 0,
       oneTimeTips: 0,
       monthlyTips: 0
     },
     notifications: [],
-    notificationsLastViewed: 0,
-    hidePublisherUnverifiedNote: false
+    notificationsLastViewed: 0
   }
 }

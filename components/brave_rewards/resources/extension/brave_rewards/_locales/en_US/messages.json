@@ -27,36 +27,6 @@
     "message": "Send Tip",
     "description": ""
   },
-  "note": {
-    "message": "Note",
-    "description": ""
-  },
-  "unverifiedNote": {
-    "message": "This creator has not yet signed up to receive contributions from Brave users. Any tips you send will remain in your wallet until they verify.",
-    "description": ""
-  },
-  "providerNotSupportedNote": {
-    "message": "This creator is currently not configured to receive tips from your wallet. Any tips you make will remain pending in your wallet and retry automatically for 90 days.",
-    "description": ""
-  },
-  "unverifiedLinks": {
-    "message": "$learn_link_begin$Learn more$learn_link_end$ or $hide_link_begin$Don’t show again$hide_link_end$.",
-    "description": "",
-    "placeholders": {
-      "learn_link_begin": {
-        "content": "$1"
-      },
-      "learn_link_end": {
-        "content": "$2"
-      },
-      "hide_link_begin": {
-        "content": "$3"
-      },
-      "hide_link_end": {
-        "content": "$4"
-      }
-    }
-  },
   "includeInAutoContribute": {
     "message": "Include in Auto-Contribute",
     "description": ""
@@ -180,10 +150,6 @@
     "message": "Estimated Earnings",
     "description": ""
   },
-  "walletHistory": {
-    "message": "History",
-    "description": ""
-  },
   "walletMonthlyTips": {
     "message": "Monthly Tips",
     "description": ""
@@ -218,10 +184,6 @@
   },
   "walletRewardsSummary": {
     "message": "Rewards Summary",
-    "description": ""
-  },
-  "walletTotalGrantsClaimed": {
-    "message": "Total Grants Claimed",
     "description": ""
   },
   "walletVerified": {

@@ -30,7 +30,7 @@ const locale = {
 function createHost (): Host {
   const stateManager = createStateManager<HostState>({
     loading: false,
-    rewardsEnabled: true,
+    rewardsEnabled: false,
     settings: {
       adsPerHour: 3,
       autoContributeAmount: 5
@@ -51,7 +51,6 @@ function createHost (): Host {
       }
     },
     externalWalletProviders: ['uphold', 'gemini'],
-    hidePublisherUnverifiedNote: false,
     balance: 10.2,
     exchangeInfo: {
       rate: 0.75,
@@ -80,7 +79,6 @@ function createHost (): Host {
       links: {}
     },
     summaryData: {
-      grantClaims: 10,
       adEarnings: 10,
       autoContributions: 10,
       oneTimeTips: -2,
@@ -154,12 +152,6 @@ function createHost (): Host {
           }
         })
       }
-    },
-
-    hidePublisherUnverifiedNote () {
-      stateManager.update({
-        hidePublisherUnverifiedNote: true
-      })
     },
 
     openRewardsSettings () {

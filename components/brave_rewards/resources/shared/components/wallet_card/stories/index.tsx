@@ -37,7 +37,6 @@ function getNextPaymentDate (soon: boolean) {
 
 export function Wallet () {
   const summaryData = {
-    grantClaims: 10,
     adEarnings: 10,
     autoContributions: 10,
     oneTimeTips: -2,
