@@ -13,14 +13,12 @@ import BraveCoreThemeProvider from '../../common/BraveCoreThemeProvider'
 import store from './store'
 import * as WalletActions from '../common/actions/wallet_actions'
 import Container from './container'
-import { PanelWrapper } from './style'
 
 function App () {
   const [initialThemeType, setInitialThemeType] = React.useState<chrome.braveTheme.ThemeType>()
   React.useEffect(() => {
     chrome.braveTheme.getBraveThemeType(setInitialThemeType)
   }, [])
-  const state = store.getState().panel
   return (
     <Provider store={store}>
       {initialThemeType &&
@@ -29,9 +27,7 @@ function App () {
           dark={walletDarkTheme}
           light={walletLightTheme}
         >
-          <PanelWrapper isLonger={state.selectedPanel === 'addEthereumChain'}>
-            <Container />
-          </PanelWrapper>
+          <Container />
         </BraveCoreThemeProvider>
       }
     </Provider>
