@@ -19,6 +19,7 @@
 #include "bat/ledger/mojom_structs.h"
 #include "brave/browser/brave_ads/ads_service_factory.h"
 #include "brave/browser/brave_rewards/rewards_service_factory.h"
+#include "brave/browser/ui/views/brave_actions/brave_actions_container.h"
 #include "brave/browser/ui/webui/brave_webui_source.h"
 #include "brave/common/webui_url_constants.h"
 #include "brave/components/brave_ads/browser/ads_service.h"
@@ -33,6 +34,7 @@
 #include "brave/components/l10n/common/locale_util.h"
 #include "chrome/browser/lifetime/application_lifetime.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/ui/browser_finder.h"
 #include "components/prefs/pref_service.h"
 #include "content/public/browser/render_view_host.h"
 #include "content/public/browser/web_contents.h"
@@ -262,13 +264,6 @@ class RewardsDOMHandler : public WebUIMessageHandler,
 
   void OnAdsEnabled(brave_rewards::RewardsService* rewards_service,
                     bool ads_enabled) override;
-
-  void OnClaimPromotion(
-      const std::string& promotion_id,
-      const ledger::type::Result result,
-      const std::string& captcha_image,
-      const std::string& hint,
-      const std::string& captcha_id);
 
   void OnAttestPromotion(
       const std::string& promotion_id,
@@ -674,26 +669,6 @@ void RewardsDOMHandler::FetchPromotions(const base::ListValue* args) {
   }
 }
 
-void RewardsDOMHandler::OnClaimPromotion(
-      const std::string& promotion_id,
-      const ledger::type::Result result,
-      const std::string& captcha_image,
-      const std::string& hint,
-      const std::string& captcha_id) {
-  if (!IsJavascriptAllowed()) {
-    return;
-  }
-
-  base::DictionaryValue response;
-  response.SetInteger("result", static_cast<int>(result));
-  response.SetString("promotionId", promotion_id);
-  response.SetString("captchaImage", captcha_image);
-  response.SetString("captchaId", captcha_id);
-  response.SetString("hint", hint);
-
-  CallJavascriptFunction("brave_rewards.claimPromotion", response);
-}
-
 void RewardsDOMHandler::ClaimPromotion(const base::ListValue* args) {
   CHECK_EQ(1U, args->GetSize());
   if (!rewards_service_) {
@@ -705,9 +680,18 @@ void RewardsDOMHandler::ClaimPromotion(const base::ListValue* args) {
   const std::string promotion_id = args->GetList()[0].GetString();
 
 #if !defined(OS_ANDROID)
-  rewards_service_->ClaimPromotion(
-      promotion_id, base::BindOnce(&RewardsDOMHandler::OnClaimPromotion,
-                                   weak_factory_.GetWeakPtr(), promotion_id));
+  // TODO(zenparsing): Use "ShowRewardsPanel" here instead.
+  Profile* profile = Profile::FromWebUI(web_ui());
+  Browser* browser = chrome::FindTabbedBrowser(profile, false);
+  if (!browser) {
+    return;
+  }
+
+  std::string path = "brave_rewards_panel.html#grant_" + promotion_id;
+  std::string error;
+  extensions::BraveActionAPI::ShowActionUI(
+      browser, brave_rewards_extension_id,
+      std::make_unique<std::string>(std::move(path)), &error);
 #else
   // No need for a callback. The UI receives "brave_rewards.promotionFinish".
   brave_rewards::AttestPromotionCallback callback = base::DoNothing();

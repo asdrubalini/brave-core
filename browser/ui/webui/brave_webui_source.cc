@@ -830,6 +830,7 @@ void CustomizeWebUIHTMLSource(const std::string &name,
         { "verifiedPublisher", IDS_BRAVE_UI_VERIFIED_PUBLISHER },
         { "viewDetails" , IDS_BRAVE_UI_VIEW_DETAILS },
         { "viewMonthly", IDS_BRAVE_UI_VIEW_MONTHLY },
+        // TODO(zenparsing): Review all of these, we might need to rename some.
         { "walletActivity", IDS_BRAVE_UI_WALLET_ACTIVITY },
         { "walletAddress", IDS_BRAVE_UI_WALLET_ADDRESS },
         { "walletBalance", IDS_BRAVE_UI_WALLET_BALANCE },
@@ -897,6 +898,26 @@ void CustomizeWebUIHTMLSource(const std::string &name,
         { "continue", IDS_BRAVE_REWARDS_CONTINUE },
         { "continueToLogin", IDS_BRAVE_REWARDS_CONTINUE_TO_LOGIN },
         { "minimumBalanceWarning", IDS_BRAVE_REWARDS_MINIMUM_BALANCE_WARNING },
+
+        { "walletAccountLink", IDS_REWARDS_WALLET_ACCOUNT_LINK },
+        { "walletAddFunds", IDS_REWARDS_WALLET_ADD_FUNDS },
+        { "walletAutoContribute", IDS_REWARDS_WALLET_AUTO_CONTRIBUTE },
+        { "walletCompleteVerificationLink", IDS_REWARDS_WALLET_COMPLETE_VERIFICATION_LINK },  // NOLINT
+        { "walletCompleteVerificationText", IDS_REWARDS_WALLET_COMPLETE_VERIFICATION_TEXT },  // NOLINT
+        { "walletDisconnected", IDS_REWARDS_WALLET_DISCONNECTED },
+        { "walletDisconnectLink", IDS_REWARDS_WALLET_DISCONNECTED_LINK },
+        { "walletEstimatedEarnings", IDS_REWARDS_WALLET_ESTIMATED_EARNINGS },
+        { "walletMonthlyTips", IDS_REWARDS_WALLET_MONTHLY_TIPS },
+        { "walletMyWallet", IDS_REWARDS_WALLET_MY_WALLET },
+        { "walletOneTimeTips", IDS_REWARDS_WALLET_ONE_TIME_TIPS },
+        { "walletPending", IDS_REWARDS_WALLET_PENDING },
+        { "walletPendingRewardsText", IDS_REWARDS_WALLET_PENDING_REWARDS_TEXT },
+        { "walletRewardsFromAds", IDS_REWARDS_WALLET_REWARDS_FROM_ADS },
+        { "walletRewardsSummary", IDS_REWARDS_WALLET_REWARDS_SUMMARY },
+        { "walletViewStatement", IDS_REWARDS_WALLET_VIEW_STATEMENT },
+        { "walletVerified", IDS_REWARDS_WALLET_VERIFIED },
+        { "walletVerify", IDS_REWARDS_WALLET_VERIFY },
+        { "walletYourBalance", IDS_REWARDS_WALLET_YOUR_BALANCE },
       }
     }, {
       std::string("adblock"), {

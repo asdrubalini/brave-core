@@ -188,8 +188,10 @@ export function createHost (): Host {
       // If the currently displayed grant captcha is no longer associated with
       // an active grant, clear it.
       const { grantCaptchaInfo } = stateManager.getState()
-      if (grantCaptchaInfo && !grants.has(grantCaptchaInfo.grantInfo.id)) {
-        clearGrantCaptcha()
+      if (grantCaptchaInfo && grantCaptchaInfo.status === 'pending') {
+        if (!grants.has(grantCaptchaInfo.grantInfo.id)) {
+          clearGrantCaptcha()
+        }
       }
     }
 
@@ -266,6 +268,11 @@ export function createHost (): Host {
   initialize().catch((error) => {
     console.error(error)
     // TODO(zenparsing): Error UX?
+  })
+
+  // Expose the state manager for debugging purposes
+  Object.assign(window, {
+    braveRewardsPanel: { stateManager }
   })
 
   return {

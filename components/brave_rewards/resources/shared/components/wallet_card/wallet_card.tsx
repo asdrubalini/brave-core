@@ -14,6 +14,7 @@ import { ExternalWalletAction } from './external_wallet_action'
 import { RewardsSummary, RewardsSummaryData } from './rewards_summary'
 import { PendingRewardsView } from './pending_rewards_view'
 import { PlusIcon } from './icons/plus_icon'
+import { WalletInfoIcon } from './icons/wallet_info_icon'
 
 import * as styles from './wallet_card.style'
 
@@ -29,10 +30,11 @@ interface Props {
   earningsLastMonth: number
   nextPaymentDate: number
   exchangeRate: number
-  exchangeCurrency?: string
+  exchangeCurrency: string
   showSummary: boolean
   summaryData: RewardsSummaryData
   onExternalWalletAction: (action: ExternalWalletAction) => void
+  onViewStatement?: () => void
 }
 
 export function getCurrentMonthRange () {
@@ -95,11 +97,21 @@ export function WalletCard (props: Props) {
       {
         props.showSummary
           ? <styles.summaryBox>
-              <styles.addFunds>
-                <button onClick={onAddFundsClick}>
-                  <PlusIcon />{getString('walletAddFunds')}
-                </button>
-              </styles.addFunds>
+              <styles.summaryActions>
+                <styles.addFunds>
+                  <button onClick={onAddFundsClick}>
+                    <PlusIcon />{getString('walletAddFunds')}
+                  </button>
+                </styles.addFunds>
+                {
+                  props.onViewStatement &&
+                    <styles.viewStatement>
+                      <button onClick={props.onViewStatement}>
+                        <WalletInfoIcon />{getString('walletViewStatement')}
+                      </button>
+                    </styles.viewStatement>
+                }
+              </styles.summaryActions>
               <RewardsSummary
                 data={props.summaryData}
                 hideAdEarnings={Boolean(props.externalWallet)}

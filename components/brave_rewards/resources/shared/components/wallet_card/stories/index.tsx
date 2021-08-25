@@ -68,6 +68,7 @@ export function Wallet () {
             showSummary={knobs.boolean('Show Summary', true)}
             summaryData={summaryData}
             onExternalWalletAction={actionLogger('onExternalWalletAction')}
+            onViewStatement={actionLogger('onViewStatement')}
           />
         </div>
       </WithThemeVariables>

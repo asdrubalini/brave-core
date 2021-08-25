@@ -767,7 +767,7 @@
       <message name="IDS_BRAVE_UI_LOGIN_MESSAGE_TITLE" desc="">Verifying wallet allows you to manage your funds more efficiently.</message>
       <message name="IDS_BRAVE_UI_LOGIN_MESSAGE_TEXT" desc="">You need to have minimum <ph name="AMOUNT">$1<ex>15</ex></ph> BAT to create an Uphold account. If you already have a verified Uphold account, continue to login.</message>
       <message name="IDS_BRAVE_UI_MAKE_MONTHLY" desc="">Make this monthly</message>
-      <message name="IDS_BRAVE_UI_MANAGE_WALLET" desc="">Manage Your Wallet</message>
+      <message name="IDS_BRAVE_UI_MANAGE_WALLET" desc="">Manage your wallet</message>
       <message name="IDS_BRAVE_UI_MONTH_APR" desc="">Apr</message>
       <message name="IDS_BRAVE_UI_MONTH_AUG" desc="">August</message>
       <message name="IDS_BRAVE_UI_MONTH_DEC" desc="">December</message>
@@ -1120,6 +1120,7 @@
       <part file="domain_block_strings.grdp" />
       <part file="ipfs_strings.grdp" />
       <part file="permissions_strings.grdp" />
+      <part file="rewards_strings.grdp" />
       <part file="speedreader_strings.grdp" />
       <part file="wallet_strings.grdp" />
       <part file="tor_strings.grdp" />

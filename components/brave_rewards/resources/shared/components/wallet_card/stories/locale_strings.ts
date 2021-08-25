@@ -14,6 +14,7 @@ export const localeStrings = {
   walletPendingRewardsText: '$1 arriving in $2',
   walletRewardsFromAds: 'Rewards from Ads',
   walletRewardsSummary: 'Rewards Summary',
+  walletViewStatement: 'View statement',
   walletVerified: 'Verified',
   walletVerify: 'Verify Wallet',
   walletYourBalance: 'Your Balance'

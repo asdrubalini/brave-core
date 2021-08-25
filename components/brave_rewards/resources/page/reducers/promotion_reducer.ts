@@ -222,6 +222,7 @@ const promotionReducer: Reducer<Rewards.State | undefined> = (state: Rewards.Sta
           }
 
           chrome.send('brave_rewards.fetchBalance')
+          chrome.send('brave_rewards.fetchPromotions')
           getCurrentBalanceReport()
           break
         case 6:
