@@ -67,7 +67,7 @@ namespace {
 
   bssl::UniquePtr<CRYPTO_BUFFER> cert_buffer(
       net::X509Certificate::CreateCertBufferFromBytes(
-          base::make_span(reinterpret_cast<const char*>(CFDataGetBytePtr(cert_data)),
+          base::make_span(static_cast<std::uint8_t*>(CFDataGetBytePtr(cert_data)),
           CFDataGetLength(cert_data))));
 
   if (!cert_buffer) {
@@ -92,7 +92,7 @@ namespace {
 
   bssl::UniquePtr<CRYPTO_BUFFER> cert_buffer(
       net::X509Certificate::CreateCertBufferFromBytes(
-          base::make_span(reinterpret_cast<const char*>(CFDataGetBytePtr(cert_data)),
+          base::make_span(static_cast<std::uint8_t*>(CFDataGetBytePtr(cert_data)),
           CFDataGetLength(cert_data))));
 
   if (!cert_buffer) {
