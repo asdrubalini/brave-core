@@ -13,6 +13,7 @@
 
 #include "base/base64.h"
 #include "base/bind.h"
+#include "base/containers/span.h"
 #include "base/logging.h"
 #include "base/memory/ref_counted.h"
 #include "base/strings/sys_string_conversions.h"
@@ -91,8 +92,8 @@ bool CalculateSPKIHashFromCertificate(X509* certificate,
 
   bssl::UniquePtr<CRYPTO_BUFFER> cert_buffer(
       net::X509Certificate::CreateCertBufferFromBytes(
-          reinterpret_cast<const char*>(CFDataGetBytePtr(cert_data)),
-          CFDataGetLength(cert_data)));
+          base::make_span(reinterpret_cast<const char*>(CFDataGetBytePtr(cert_data)),
+          CFDataGetLength(cert_data))));
 
   if (!cert_buffer) {
     return nil;
@@ -116,8 +117,8 @@ bool CalculateSPKIHashFromCertificate(X509* certificate,
 
   bssl::UniquePtr<CRYPTO_BUFFER> cert_buffer(
       net::X509Certificate::CreateCertBufferFromBytes(
-          reinterpret_cast<const char*>(CFDataGetBytePtr(cert_data)),
-          CFDataGetLength(cert_data)));
+          base::make_span(reinterpret_cast<const char*>(CFDataGetBytePtr(cert_data)),
+          CFDataGetLength(cert_data))));
 
   if (!cert_buffer) {
     return nil;
