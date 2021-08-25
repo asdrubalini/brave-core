@@ -42,31 +42,6 @@ namespace {
 }
 }  // net
 
-namespace net {
-// from: net/tools/transport_security_state_generator/cert_util.h
-bool CalculateSPKIHashFromCertificate(X509* certificate,
-                                      std::uint8_t (&data)[32]) {
-  DCHECK(certificate);
-  bssl::UniquePtr<EVP_PKEY> key(X509_get_pubkey(certificate));
-  if (!key) {
-    return false;
-  }
-
-  uint8_t* spki_der;
-  size_t spki_der_len;
-  bssl::ScopedCBB cbb;
-  if (!CBB_init(cbb.get(), 0) ||
-      !EVP_marshal_public_key(cbb.get(), key.get()) ||
-      !CBB_finish(cbb.get(), &spki_der, &spki_der_len)) {
-    return false;
-  }
-
-  SHA256(spki_der, spki_der_len, data);
-  OPENSSL_free(spki_der);
-  return true;
-}
-}  // net
-
 @implementation BraveCertificateUtility
 + (NSArray<NSData*>*)acceptableCerts {
   NSMutableArray* result = [[NSMutableArray alloc] init];
