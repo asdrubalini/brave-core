@@ -1,4 +1,4 @@
-/* Copyright (c) 2020 The Brave Authors. All rights reserved.
+/* Copyright (c) 2021 The Brave Authors. All rights reserved.
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -14,8 +14,8 @@ NS_ASSUME_NONNULL_BEGIN
 OBJC_EXPORT
 @interface BraveCertificateUtility : NSObject
 + (NSArray<NSData*>*)acceptableCerts;
-+ (NSString*)pemEncodeCertificate:(SecCertificateRef)certificate;
-+ (NSData*)hashCertificateSPKI:(SecCertificateRef)certificate;
++ (nullable NSString*)pemEncodeCertificate:(SecCertificateRef)certificate;
++ (nullable NSData*)hashCertificateSPKI:(SecCertificateRef)certificate;
 @end
 
 NS_ASSUME_NONNULL_END

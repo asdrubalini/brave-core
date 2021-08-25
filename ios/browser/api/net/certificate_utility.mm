@@ -1,4 +1,4 @@
-/* Copyright (c) 2020 The Brave Authors. All rights reserved.
+/* Copyright (c) 2021 The Brave Authors. All rights reserved.
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -86,7 +86,7 @@ bool CalculateSPKIHashFromCertificate(X509* certificate,
   base::ScopedCFTypeRef<CFDataRef> cert_data =
       base::ScopedCFTypeRef<CFDataRef>(SecCertificateCopyData(certificate));
   if (!cert_data) {
-    return nullptr;
+    return nil;
   }
 
   bssl::UniquePtr<CRYPTO_BUFFER> cert_buffer(
@@ -95,13 +95,13 @@ bool CalculateSPKIHashFromCertificate(X509* certificate,
           CFDataGetLength(cert_data)));
 
   if (!cert_buffer) {
-    return nullptr;
+    return nil;
   }
 
   std::string pem_encoded;
   net::X509Certificate::GetPEMEncoded(cert_buffer.get(), &pem_encoded);
   if (pem_encoded.empty()) {
-    return nullptr;
+    return nil;
   }
 
   return base::SysUTF8ToNSString(pem_encoded);
@@ -111,7 +111,7 @@ bool CalculateSPKIHashFromCertificate(X509* certificate,
   base::ScopedCFTypeRef<CFDataRef> cert_data =
       base::ScopedCFTypeRef<CFDataRef>(SecCertificateCopyData(certificate));
   if (!cert_data) {
-    return nullptr;
+    return nil;
   }
 
   bssl::UniquePtr<CRYPTO_BUFFER> cert_buffer(
@@ -120,7 +120,7 @@ bool CalculateSPKIHashFromCertificate(X509* certificate,
           CFDataGetLength(cert_data)));
 
   if (!cert_buffer) {
-    return nullptr;
+    return nil;
   }
 
   net::CertErrors errors;
@@ -131,7 +131,7 @@ bool CalculateSPKIHashFromCertificate(X509* certificate,
 
   if (!extended_cert) {
     LOG(ERROR) << errors.ToDebugString();
-    return nullptr;
+    return nil;
   }
 
   std::uint8_t data[32] = {0};
