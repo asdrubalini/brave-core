@@ -560,21 +560,15 @@ export type AllowSpendReturnPayload = {
   transactionFeeFiat: string
 }
 
-export type NativeCurrency = {
-  symbol: string,
-  name: string,
-  decimals: number
-}
-
-// Keep in sync with components/brave_wallet/common/brave_wallet.mojom until
-// we auto generate this type file from mojo.
 export type EthereumChain = {
   chainId: string,
   chainName: string,
-  blockExplorerUrls?: string[],
-  iconUrls?: string[],
+  blockExplorerUrls: string[],
+  iconUrls: string[],
   rpcUrls: string[],
-  currency?: NativeCurrency
+  symbol: string,
+  name: string,
+  decimals: number
 }
 
 export interface GetAllNetworksList {
