@@ -44,7 +44,8 @@ import {
   WalletPanelState,
   WalletAccountType,
   BuySendSwapViewTypes,
-  AccountAssetOptionType
+  AccountAssetOptionType,
+  EthereumChain
 } from '../constants/types'
 import { AppsList } from '../options/apps-list-options'
 import LockPanel from '../components/extension/lock-panel'
