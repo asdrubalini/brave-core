@@ -48,27 +48,29 @@ function create<T> (obj: T): T { return obj }
 export function mapNotification (
   obj: RewardsExtension.Notification
 ): Notification | null {
+  const baseProps = {
+    id: obj.id,
+    timeStamp: obj.timestamp * 1000 || 0
+  }
+
   switch (obj.type) {
     case ExtensionNotificationType.AUTO_CONTRIBUTE:
       switch (parseInt(obj.args[1], 10)) {
         case 0: // Success
           return create<AutoContributeCompletedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'auto-contribute-completed',
             amount: parseFloat(obj.args[3]) || 0
           })
         case 1: // General error
           return create<MonthlyContributionFailedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'monthly-contribution-failed',
             reason: 'unknown'
           })
         case 15: // Not enough funds
           return create<MonthlyContributionFailedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'monthly-contribution-failed',
             reason: 'insufficient-funds'
           })
@@ -76,49 +78,42 @@ export function mapNotification (
       break
     case ExtensionNotificationType.GRANT:
       return create<GrantAvailableNotification>({
-        id: obj.id,
-        timeStamp: obj.timestamp,
+        ...baseProps,
         type: 'grant-available',
         source: 'ugp',
         grantId: parseGrantId(obj.id)
       })
     case ExtensionNotificationType.GRANT_ADS:
       return create<GrantAvailableNotification>({
-        id: obj.id,
-        timeStamp: obj.timestamp,
+        ...baseProps,
         type: 'grant-available',
         source: 'ads',
         grantId: parseGrantId(obj.id)
       })
     case ExtensionNotificationType.BACKUP_WALLET:
       return {
-        id: obj.id,
-        timeStamp: obj.timestamp,
+        ...baseProps,
         type: 'backup-wallet'
       }
     case ExtensionNotificationType.INSUFFICIENT_FUNDS:
       return {
-        id: obj.id,
-        timeStamp: obj.timestamp,
+        ...baseProps,
         type: 'add-funds'
       }
     case ExtensionNotificationType.TIPS_PROCESSED:
       return {
-        id: obj.id,
-        timeStamp: obj.timestamp,
+        ...baseProps,
         type: 'monthly-tip-completed'
       }
     case ExtensionNotificationType.VERIFIED_PUBLISHER:
       return create<PendingPublisherVerifiedNotification>({
-        id: obj.id,
-        timeStamp: obj.timestamp,
+        ...baseProps,
         type: 'pending-publisher-verified',
         publisherName: obj.args[0] || ''
       })
     case ExtensionNotificationType.PENDING_NOT_ENOUGH_FUNDS:
       return create<PendingTipFailedNotification>({
-        id: obj.id,
-        timeStamp: obj.timestamp,
+        ...baseProps,
         type: 'pending-tip-failed',
         reason: 'insufficient-funds'
       })
@@ -126,62 +121,54 @@ export function mapNotification (
       switch (obj.args[0]) {
         case 'wallet_device_limit_reached':
           return create<ExternalWalletLinkingFailedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'external-wallet-linking-failed',
             provider: 'uphold', // TODO(zenparsing): We need to add this.
             reason: 'device-limit-reached'
           })
         case 'wallet_disconnected':
           return create<ExternalWalletDisconnectedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'external-wallet-disconnected',
             provider: 'uphold' // TODO(zenparsing): Do we have this?
           })
         case 'wallet_mismatched_provider_accounts':
           return create<ExternalWalletLinkingFailedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'external-wallet-linking-failed',
             provider: mapProvider(obj.args[1] || '') || 'uphold', // TODO: ?
             reason: 'mismatched-provider-accounts'
           })
         case 'wallet_new_verified':
           return create<ExternalWalletVerifiedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'external-wallet-verified',
             provider: mapProvider(obj.args[1] || '') || 'uphold' // TODO: ?
           })
         case 'uphold_bat_not_allowed_for_user':
           return create<ExternalWalletLinkingFailedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'external-wallet-linking-failed',
             provider: 'uphold',
             reason: 'uphold-bat-not-supported'
           })
         case 'uphold_blocked_user':
           return create<ExternalWalletLinkingFailedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'external-wallet-linking-failed',
             provider: 'uphold',
             reason: 'uphold-user-blocked'
           })
         case 'uphold_pending_user':
           return create<ExternalWalletLinkingFailedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'external-wallet-linking-failed',
             provider: 'uphold',
             reason: 'uphold-user-pending'
           })
         case 'uphold_restricted_user':
           return create<ExternalWalletLinkingFailedNotification>({
-            id: obj.id,
-            timeStamp: obj.timestamp,
+            ...baseProps,
             type: 'external-wallet-linking-failed',
             provider: 'uphold',
             reason: 'uphold-user-restricted'

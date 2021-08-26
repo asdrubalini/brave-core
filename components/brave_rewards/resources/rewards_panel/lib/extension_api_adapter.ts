@@ -169,10 +169,27 @@ export function getNotifications () {
   return new Promise<Notification[]>((resolve) => {
     chrome.braveRewards.getAllNotifications((list) => {
       const notifications: Notification[] = []
+      const typeSet = new Set<string>()
+
       for (const obj of list) {
-        const notification = mapNotification(obj)
+        let notification = mapNotification(obj)
+
+        // Legacy monthly contribution failure entries are keyed on the
+        // contribution ID, which can result it duplicate failure notifications.
+        // Dedupe them now.
+        if (notification &&
+            notification.type === 'monthly-contribution-failed' &&
+            typeSet.has(notification.type)) {
+          notification = null
+        }
+
         if (notification) {
+          typeSet.add(notification.type)
           notifications.push(notification)
+        } else {
+          // If the notification is "invalid", remove it from the browser's
+          // notification store.
+          chrome.rewardsNotifications.deleteNotification(obj.id)
         }
       }
       resolve(notifications)

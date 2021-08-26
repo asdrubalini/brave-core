@@ -20,6 +20,7 @@ export const overview = styled.div`
 
 export const balancePanel = styled.div`
   flex: 1 1 50%;
+  padding-right: 5px;
 `
 
 export const rewardsBalance = styled.div`
@@ -54,6 +55,7 @@ export const exchangeAmount = styled.div`
 
 export const earningsPanel = styled.div`
   flex: 1 1 50%;
+  padding-left: 5px;
 `
 
 export const dateRange = styled.div`

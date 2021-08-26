@@ -184,15 +184,6 @@ export function createHost (): Host {
       for (const grant of list) {
         grants.set(grant.id, grant)
       }
-
-      // If the currently displayed grant captcha is no longer associated with
-      // an active grant, clear it.
-      const { grantCaptchaInfo } = stateManager.getState()
-      if (grantCaptchaInfo && grantCaptchaInfo.status === 'pending') {
-        if (!grants.has(grantCaptchaInfo.grantInfo.id)) {
-          clearGrantCaptcha()
-        }
-      }
     }
 
     apiAdapter.onGrantsUpdated(updateGrants)
