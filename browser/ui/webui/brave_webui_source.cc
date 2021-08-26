@@ -907,6 +907,7 @@ void CustomizeWebUIHTMLSource(const std::string &name,
         { "walletDisconnected", IDS_REWARDS_WALLET_DISCONNECTED },
         { "walletDisconnectLink", IDS_REWARDS_WALLET_DISCONNECTED_LINK },
         { "walletEstimatedEarnings", IDS_REWARDS_WALLET_ESTIMATED_EARNINGS },
+        { "walletLogIntoYourAccount", IDS_REWARDS_WALLET_LOG_INTO_YOUR_ACCOUNT },  // NOLINT
         { "walletMonthlyTips", IDS_REWARDS_WALLET_MONTHLY_TIPS },
         { "walletMyWallet", IDS_REWARDS_WALLET_MY_WALLET },
         { "walletOneTimeTips", IDS_REWARDS_WALLET_ONE_TIME_TIPS },

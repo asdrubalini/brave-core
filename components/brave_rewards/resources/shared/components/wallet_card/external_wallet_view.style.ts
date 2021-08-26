@@ -6,8 +6,10 @@ import styled from 'styled-components'
 
 export const root = styled.div`
   position: relative;
+`
 
-  button.connect {
+export const verifyWallet = styled.div`
+  button {
     font-weight: 600;
     font-size: 13px;
     line-height: 20px;
@@ -22,16 +24,6 @@ export const root = styled.div`
     }
   }
 
-  button .caret .icon {
-    width: 11px;
-    height: auto;
-    vertical-align: middle;
-    margin-left: 8px;
-    margin-bottom: 2px;
-  }
-`
-
-export const verifyWallet = styled.div`
   .icon {
     width: 17px;
     height: auto;
@@ -42,6 +34,12 @@ export const verifyWallet = styled.div`
 `
 
 export const reconnectWallet = styled.div`
+  button.connect {
+    font-size: 12px;
+    line-height: 18px;
+    padding: 6px 10px;
+  }
+
   .icon {
     height: 17px;
     width: auto;
@@ -70,7 +68,7 @@ export const bubbleAction = styled.div`
       height: 14px;
       width: auto;
       vertical-align: middle;
-      margin-left: 5px;
+      margin-left: 4px;
       margin-bottom: 2px;
     }
 
@@ -81,6 +79,14 @@ export const bubbleAction = styled.div`
       margin-left: 2px;
       margin-bottom: 3px;
       margin-right: -3px;
+    }
+
+    .caret .icon {
+      width: 11px;
+      height: auto;
+      vertical-align: middle;
+      margin-left: 4px;
+      margin-bottom: 2px;
     }
   }
 `

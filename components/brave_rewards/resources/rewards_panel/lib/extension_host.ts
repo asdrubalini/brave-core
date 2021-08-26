@@ -160,24 +160,18 @@ export function createHost (): Host {
   }
 
   async function initialize () {
-    /*
+    chrome.braveRewards.onPublisherData.addListener(() => {
+      updatePublisherInfo().catch(console.error)
+    })
 
-    TODO(zenparsing): To which of the following do we need to listen for
-    changes?
-
-    - rewardsEnabled
-    - balance
-    - prefs
-    - options
-    - exchange info
-    - earnings info
-    - publisher info
-    - external wallet providers
-    - external wallet info
-    - summary data
-    - notifictions
-
-    */
+    chrome.braveRewards.onAdsEnabled.addListener(() => {
+      // TODO(zenparsing): We're listening to this event to determine when
+      // rewards has been enabled from onboarding. Ideally, there would be an
+      // |onRewardsEnabled| event.
+      apiAdapter.getSettings().then((settings) => {
+        stateManager.update({ settings })
+      }).catch(console.error)
+    })
 
     function updateGrants (list: GrantInfo[]) {
       grants.clear()
@@ -188,12 +182,18 @@ export function createHost (): Host {
 
     apiAdapter.onGrantsUpdated(updateGrants)
 
-    chrome.braveRewards.onUnblindedTokensReady.addListener(() => {
-      // Update the balance when a vBAT grant is available.
+    function updateBalance () {
       apiAdapter.getRewardsBalance().then((balance) => {
         stateManager.update({ balance })
       }).catch(console.error)
-    })
+
+      apiAdapter.getRewardsSummaryData().then((summaryData) => {
+        stateManager.update({ summaryData })
+      }).catch(console.error)
+    }
+
+    chrome.braveRewards.onReconcileComplete.addListener(updateBalance)
+    chrome.braveRewards.onUnblindedTokensReady.addListener(updateBalance)
 
     function updateNotifications () {
       apiAdapter.getNotifications().then((notifications) => {
@@ -209,10 +209,18 @@ export function createHost (): Host {
     chrome.rewardsNotifications.onNotificationDeleted.addListener(
       updateNotifications)
 
-    stateManager.update({
-      notificationsLastViewed:
-        Number(readLocalStorage('notifications-last-viewed')) || 0
-    })
+    // Read the last notification view time from local storage. If the last view
+    // time is beyond a fixed threshold, reset it. This effectively creates a
+    // snooze mechanism, using notificationsLastViewed as the last snooze time.
+    let notificationsLastViewed = Math.min(
+      Number(readLocalStorage('notifications-last-viewed')) || 0,
+      Date.now())
+
+    if (Date.now() - notificationsLastViewed > 1000 * 60 * 60 * 24) {
+      notificationsLastViewed = 0
+    }
+
+    stateManager.update({ notificationsLastViewed })
 
     await Promise.all([
       apiAdapter.getGrants().then((list) => {
@@ -283,7 +291,6 @@ export function createHost (): Host {
 
     enableRewards () {
       chrome.braveRewards.enableRewards()
-      // TODO: Do we need to refetch everything now?
       stateManager.update({ rewardsEnabled: true })
     },
 

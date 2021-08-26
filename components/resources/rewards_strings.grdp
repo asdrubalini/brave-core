@@ -24,6 +24,9 @@
   <message name="IDS_REWARDS_WALLET_ESTIMATED_EARNINGS" desc="">
     Estimated Earnings
   </message>
+  <message name="IDS_REWARDS_WALLET_LOG_INTO_YOUR_ACCOUNT" desc="">
+    Log into your <ph name="PROVIDER">$1<ex>Uphold</ex></ph> account
+  </message>
   <message name="IDS_REWARDS_WALLET_MONTHLY_TIPS" desc="">
     Monthly Tips
   </message>

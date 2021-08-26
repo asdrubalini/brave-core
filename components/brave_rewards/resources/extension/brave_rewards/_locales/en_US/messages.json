@@ -150,6 +150,15 @@
     "message": "Estimated Earnings",
     "description": ""
   },
+  "walletLogIntoYourAccount": {
+    "message": "Log into your $provider$ account",
+    "description": "",
+    "placeholders": {
+      "provider": {
+        "content": "$1"
+      }
+    }
+  },
   "walletMonthlyTips": {
     "message": "Monthly Tips",
     "description": ""

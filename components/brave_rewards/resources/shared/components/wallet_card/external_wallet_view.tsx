@@ -59,23 +59,14 @@ export function ExternalWalletView (props: Props) {
       )
     }
 
-    if (externalWallet.status === 'disconnected') {
-      return (
-        <style.reconnectWallet>
-          <button className='connect' onClick={actionHandler('reconnect')}>
-            <ProviderIcon />{getString('walletDisconnected')}
-            <span className='caret'>
-              <CaretIcon direction='down' />
-            </span>
-          </button>
-        </style.reconnectWallet>
-      )
-    }
-
     return (
       <style.bubbleAction>
         <button onClick={toggleBubble} className={showBubble ? 'pressed' : ''}>
-          {getString('walletMyWallet')}
+          {
+            getString(externalWallet.status === 'disconnected'
+              ? 'walletDisconnected'
+              : 'walletMyWallet')
+          }
           <span className='provider'><ProviderIcon /></span>
           {
             externalWallet.status === 'pending' &&

@@ -7,6 +7,7 @@ export const localeStrings = {
   walletDisconnected: 'Disconnected',
   walletDisconnectLink: 'Disconnect from Brave Rewards',
   walletEstimatedEarnings: 'Estimated Earnings',
+  walletLogIntoYourAccount: 'Log into your $1 account',
   walletMonthlyTips: 'Monthly Tips',
   walletMyWallet: 'My Wallet',
   walletOneTimeTips: 'One-Time Tips',

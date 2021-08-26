@@ -22,8 +22,8 @@ export const loading = styled.div`
     color: var(--brave-color-brandBat);
 
     animation-name: fade-in;
-    animation-delay: .5s;
-    animation-duration: 1s;
+    animation-delay: 200ms;
+    animation-duration: 500ms;
     animation-fill-mode: both;
 
     @keyframes fade-in {

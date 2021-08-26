@@ -174,7 +174,7 @@ export function getNotifications () {
       for (const obj of list) {
         let notification = mapNotification(obj)
 
-        // Legacy monthly contribution failure entries are keyed on the
+        // Legacy "monthly contribution failure" notifications are keyed on the
         // contribution ID, which can result it duplicate failure notifications.
         // Dedupe them now.
         if (notification &&
