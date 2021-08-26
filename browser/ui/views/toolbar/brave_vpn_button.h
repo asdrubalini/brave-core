@@ -20,18 +20,14 @@ class VpnLoginStatusDelegate : public content::WebContentsDelegate {
   VpnLoginStatusDelegate();
   ~VpnLoginStatusDelegate() override;
 
-  void UpdateTargetURL(content::WebContents* source, const GURL& url) override;
-  void LoadingStateChanged(content::WebContents* source, bool to_different_document) override;
-  bool DidAddMessageToConsole(
-      content::WebContents* source,
-      blink::mojom::ConsoleMessageLevel log_level,
-      const std::u16string& message,
-      int32_t line_no,
-      const std::u16string& source_id) override;
+  bool DidAddMessageToConsole(content::WebContents* source,
+                              blink::mojom::ConsoleMessageLevel log_level,
+                              const std::u16string& message,
+                              int32_t line_no,
+                              const std::u16string& source_id) override;
 
   VpnLoginStatusDelegate(const VpnLoginStatusDelegate&) = delete;
-  VpnLoginStatusDelegate& operator=(const VpnLoginStatusDelegate&) =
-      delete;
+  VpnLoginStatusDelegate& operator=(const VpnLoginStatusDelegate&) = delete;
 };
 
 class BraveVPNButton : public ToolbarButton,
@@ -61,6 +57,8 @@ class BraveVPNButton : public ToolbarButton,
   void ShowBraveVPNPanel();
 
   BraveVpnServiceDesktop* service_ = nullptr;
+  std::unique_ptr<content::WebContents> contents_;
+  std::unique_ptr<VpnLoginStatusDelegate> contents_delegate_;
   base::ScopedObservation<BraveVpnServiceDesktop,
                           BraveVpnServiceDesktop::Observer>
       observation_{this};

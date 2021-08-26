@@ -32,43 +32,27 @@
 VpnLoginStatusDelegate::VpnLoginStatusDelegate() = default;
 VpnLoginStatusDelegate::~VpnLoginStatusDelegate() = default;
 
-void VpnLoginStatusDelegate::UpdateTargetURL(content::WebContents* source,
-    const GURL& url) {
-  LOG(ERROR) << "BSC]] UpdateTargetURL\nurl=" << url;
-}
-
-constexpr int kVpnLoginStatusIsolatedWorldId =
-    content::ISOLATED_WORLD_ID_CONTENT_END + 1;
-
-void VpnLoginStatusDelegate::LoadingStateChanged(content::WebContents* source,
-                                                 bool to_different_document) {
-  LOG(ERROR) << "BSC]] LoadingStateChanged\nto_different_document="
-             << to_different_document << "\nIsLoading=" << source->IsLoading();
-  if (!source->IsLoading()) {
-    LOG(ERROR) << "BSC]] FINISHED LOADING";
-  }
-}
-
 bool VpnLoginStatusDelegate::DidAddMessageToConsole(
-      content::WebContents* source,
-      blink::mojom::ConsoleMessageLevel log_level,
-      const std::u16string& message,
-      int32_t line_no,
-      const std::u16string& source_id) {
-  LOG(ERROR) << "BSC]] DidAddMessageToConsole\nmessage=" << message;
+    content::WebContents* source,
+    blink::mojom::ConsoleMessageLevel log_level,
+    const std::u16string& message,
+    int32_t line_no,
+    const std::u16string& source_id) {
+  // LOG(ERROR) << "BSC]] DidAddMessageToConsole\nmessage=" << message;
 
   std::size_t found = message.find(u"rewards sdk initialized");
   if (found != std::u16string::npos) {
     LOG(ERROR) << "BSC]] SDK is initialized! Try to get reference to "
                   "`navigator.brave.skus`";
-    // I think this is having a problem with the isolated world bit.
-    const char16_t kGetTheCookie[] = uR"(
+
+    const char16_t kGetTheCookie[] =
+        uR"(
 let retries = 10;
 let wait_for_sdk_id = window.setInterval(() => {
   let sku_sdk = navigator.brave.skus;
   if (sku_sdk) {
     sku_sdk.prepare_credentials_presentation('talk.brave.software', '*').then((response) => {
-      console.log('BSC]]', response);
+      console.log(response);
     });
     window.clearInterval(wait_for_sdk_id);
   } else {
@@ -80,12 +64,19 @@ let wait_for_sdk_id = window.setInterval(() => {
   }
 }, 1000);
 )";
+
+    content::RenderFrameHost::AllowInjectingJavaScript();
+
     std::u16string get_my_cookie(kGetTheCookie);
     auto* main_frame = source->GetMainFrame();
-    main_frame->ExecuteJavaScriptInIsolatedWorld(
-        get_my_cookie, {}, kVpnLoginStatusIsolatedWorldId);
+    main_frame->ExecuteJavaScript(get_my_cookie, base::NullCallback());
     return false;
   }
+  found = message.find(u"__Secure-sku#");
+  if (found != std::u16string::npos) {
+    LOG(ERROR) << "GOT THE CREDENTIAL! " << message;
+  }
+
   return true;
 }
 
@@ -202,19 +193,11 @@ void BraveVPNButton::OnButtonPressed(const ui::Event& event) {
 
   if (contents_) {
     GURL url = GURL("https://account.brave.software/skus/");
-    std::string extra_headers = "Authorization: Basic BASE64_ENCODED_USER:PASSWORD_HERE";
-    // content::NavigationController::LoadURLParams params(url);
-    // params.referrer = content::Referrer();
-    // params.transition_type = ui::PAGE_TRANSITION_AUTO_TOPLEVEL;
-    // params.extra_headers = extra_headers;
-    // params.initiator_origin = url::Origin::Create(GURL("https://talk.brave.software"));
-    // contents_->GetController().LoadURLWithParams(params);
-
-    contents_->GetController().LoadURL(
-      url,
-      content::Referrer(),
-      ui::PAGE_TRANSITION_AUTO_TOPLEVEL,
-      extra_headers);
+    std::string extra_headers =
+        "Authorization: Basic BASE64_ENCODED_USER:PASSWORD_HERE";
+    contents_->GetController().LoadURL(url, content::Referrer(),
+                                       ui::PAGE_TRANSITION_AUTO_TOPLEVEL,
+                                       extra_headers);
   }
 }
 
