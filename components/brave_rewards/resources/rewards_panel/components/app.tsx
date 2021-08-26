@@ -11,7 +11,7 @@ import { WithThemeVariables } from '../../shared/components/with_theme_variables
 import { Panel } from './panel'
 import { LoadingIcon } from './icons/loading_icon'
 
-import * as styles from './app.style'
+import * as style from './app.style'
 
 interface Props {
   host: Host
@@ -19,9 +19,9 @@ interface Props {
 
 function Loading () {
   return (
-    <styles.loading>
+    <style.loading>
       <LoadingIcon />
-    </styles.loading>
+    </style.loading>
   )
 }
 
@@ -36,9 +36,9 @@ export function App (props: Props) {
     <HostContext.Provider value={props.host}>
       <LocaleContext.Provider value={props.host}>
         <WithThemeVariables>
-          <styles.root>
+          <style.root>
             {loading ? <Loading /> : <Panel />}
-          </styles.root>
+          </style.root>
         </WithThemeVariables>
       </LocaleContext.Provider>
     </HostContext.Provider>

@@ -16,7 +16,7 @@ import { PendingRewardsView } from './pending_rewards_view'
 import { PlusIcon } from './icons/plus_icon'
 import { WalletInfoIcon } from './icons/wallet_info_icon'
 
-import * as styles from './wallet_card.style'
+import * as style from './wallet_card.style'
 
 const rangeFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
@@ -52,66 +52,66 @@ export function WalletCard (props: Props) {
   }
 
   return (
-    <styles.root>
-      <styles.overview>
-        <styles.balancePanel>
+    <style.root>
+      <style.overview>
+        <style.balancePanel>
           <ExternalWalletView
             externalWallet={props.externalWallet}
             onExternalWalletAction={props.onExternalWalletAction}
           />
-          <styles.rewardsBalance>
-            <styles.balanceHeader>
+          <style.rewardsBalance>
+            <style.balanceHeader>
               {getString('walletYourBalance')}
-            </styles.balanceHeader>
-            <styles.batAmount>
+            </style.balanceHeader>
+            <style.batAmount>
               <TokenAmount amount={props.balance} />
-            </styles.batAmount>
-            <styles.exchangeAmount>
+            </style.batAmount>
+            <style.exchangeAmount>
               <ExchangeAmount
                 amount={props.balance}
                 rate={props.exchangeRate}
               />
-            </styles.exchangeAmount>
-          </styles.rewardsBalance>
-        </styles.balancePanel>
-        <styles.earningsPanel>
-          <styles.dateRange>
+            </style.exchangeAmount>
+          </style.rewardsBalance>
+        </style.balancePanel>
+        <style.earningsPanel>
+          <style.dateRange>
             {getCurrentMonthRange()}
-          </styles.dateRange>
-          <styles.earningsHeader>
+          </style.dateRange>
+          <style.earningsHeader>
             {getString('walletEstimatedEarnings')}
-          </styles.earningsHeader>
-          <styles.batAmount>
+          </style.earningsHeader>
+          <style.batAmount>
               <TokenAmount amount={props.earningsThisMonth} />
-            </styles.batAmount>
-            <styles.exchangeAmount>
+            </style.batAmount>
+            <style.exchangeAmount>
               ≈ &nbsp;
               <ExchangeAmount
                 amount={props.earningsThisMonth}
                 rate={props.exchangeRate}
                 currency={props.exchangeCurrency}
               />
-            </styles.exchangeAmount>
-        </styles.earningsPanel>
-      </styles.overview>
+            </style.exchangeAmount>
+        </style.earningsPanel>
+      </style.overview>
       {
         props.showSummary
-          ? <styles.summaryBox>
-              <styles.summaryActions>
-                <styles.addFunds>
+          ? <style.summaryBox>
+              <style.summaryActions>
+                <style.addFunds>
                   <button onClick={onAddFundsClick}>
                     <PlusIcon />{getString('walletAddFunds')}
                   </button>
-                </styles.addFunds>
+                </style.addFunds>
                 {
                   props.onViewStatement &&
-                    <styles.viewStatement>
+                    <style.viewStatement>
                       <button onClick={props.onViewStatement}>
                         <WalletInfoIcon />{getString('walletViewStatement')}
                       </button>
-                    </styles.viewStatement>
+                    </style.viewStatement>
                 }
-              </styles.summaryActions>
+              </style.summaryActions>
               <RewardsSummary
                 data={props.summaryData}
                 hideAdEarnings={Boolean(props.externalWallet)}
@@ -120,14 +120,14 @@ export function WalletCard (props: Props) {
                 exchangeRate={props.exchangeRate}
                 exchangeCurrency={props.exchangeCurrency}
               />
-            </styles.summaryBox>
-          : <styles.pendingBox>
+            </style.summaryBox>
+          : <style.pendingBox>
               <PendingRewardsView
                 amount={props.earningsLastMonth}
                 nextPaymentDate={props.nextPaymentDate}
               />
-            </styles.pendingBox>
+            </style.pendingBox>
       }
-    </styles.root>
+    </style.root>
   )
 }

@@ -7,7 +7,7 @@ import * as React from 'react'
 import { Notification } from '../../shared/components/notifications'
 import { NotificationCard } from './notification_card'
 
-import * as styles from './notification_overlay.style'
+import * as style from './notification_overlay.style'
 
 interface Props {
   notifications: Notification[]
@@ -26,11 +26,11 @@ export function NotificationOverlay (props: Props) {
   }
 
   return (
-    <styles.root onClick={onBackgroundClick}>
-      <styles.card>
+    <style.root onClick={onBackgroundClick}>
+      <style.card>
         <NotificationCard notification={props.notifications[0]} />
-        {props.notifications.length > 1 && <styles.peek />}
-      </styles.card>
-    </styles.root>
+        {props.notifications.length > 1 && <style.peek />}
+      </style.card>
+    </style.root>
   )
 }

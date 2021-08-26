@@ -7,7 +7,7 @@ import * as React from 'react'
 import { LocaleContext } from '../../shared/lib/locale_context'
 import { ManageWalletIcon } from './icons/manage_wallet_icon'
 
-import * as styles from './manage_wallet_button.style'
+import * as style from './manage_wallet_button.style'
 
 interface Props {
   onClick: () => void
@@ -16,10 +16,10 @@ interface Props {
 export function ManageWalletButton (props: Props) {
   const { getString } = React.useContext(LocaleContext)
   return (
-    <styles.root>
+    <style.root>
       <button onClick={props.onClick}>
         <ManageWalletIcon />{getString('manageWallet')}
       </button>
-    </styles.root>
+    </style.root>
   )
 }

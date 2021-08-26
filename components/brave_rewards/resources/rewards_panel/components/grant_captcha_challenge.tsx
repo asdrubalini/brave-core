@@ -9,7 +9,7 @@ import { GrantCaptchaInfo } from '../lib/interfaces'
 import { LoadingIcon } from './icons/loading_icon'
 import { ArrowDownIcon } from './icons/arrow_down_icon'
 
-import * as styles from './grant_captcha_challenge.style'
+import * as style from './grant_captcha_challenge.style'
 
 import dragIconURL from '../assets/grant_captcha_icon.png'
 
@@ -86,38 +86,38 @@ export function GrantCaptchaChallenge (props: Props) {
 
   if (!grantCaptchaInfo.imageURL) {
     return (
-      <styles.root>
-        <styles.loading>
+      <style.root>
+        <style.loading>
           <LoadingIcon />
-        </styles.loading>
-      </styles.root>
+        </style.loading>
+      </style.root>
     )
   }
 
   return (
-    <styles.root>
-      <styles.hint>
+    <style.root>
+      <style.hint>
           {
             formatMessage(getString('grantCaptchaHint'), [
               <strong key='hint'>{grantCaptchaInfo.hint}</strong>
             ])
           }
-      </styles.hint>
-      <styles.dragObject>
-        <styles.dragObjectCircle>
+      </style.hint>
+      <style.dragObject>
+        <style.dragObjectCircle>
           <img src={dragIconURL} draggable={true} onDragStart={onDragStart} />
-        </styles.dragObjectCircle>
-      </styles.dragObject>
-      <styles.arrow>
+        </style.dragObjectCircle>
+      </style.dragObject>
+      <style.arrow>
         <ArrowDownIcon />
-      </styles.arrow>
-      <styles.dragTarget>
+      </style.arrow>
+      <style.dragTarget>
         <img
           src={grantCaptchaInfo.imageURL}
           onDragOver={onDragOver}
           onDrop={onDrop}
         />
-      </styles.dragTarget>
-    </styles.root>
+      </style.dragTarget>
+    </style.root>
   )
 }

@@ -21,6 +21,14 @@ export const root = styled.div`
       background: rgba(255, 255, 255, 0.30);
     }
   }
+
+  button .caret .icon {
+    width: 11px;
+    height: auto;
+    vertical-align: middle;
+    margin-left: 8px;
+    margin-bottom: 2px;
+  }
 `
 
 export const verifyWallet = styled.div`
@@ -73,14 +81,6 @@ export const bubbleAction = styled.div`
       margin-left: 2px;
       margin-bottom: 3px;
       margin-right: -3px;
-    }
-
-    .caret .icon {
-      width: 11px;
-      height: auto;
-      vertical-align: middle;
-      margin-left: 8px;
-      margin-bottom: 2px;
     }
   }
 `

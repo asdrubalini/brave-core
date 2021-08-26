@@ -10,7 +10,7 @@ import { GrantCaptchaChallenge } from './grant_captcha_challenge'
 import { Modal, ModalCloseButton } from '../../shared/components/modal'
 import { TokenAmount } from '../../shared/components/token_amount'
 
-import * as styles from './grant_captcha_modal.style'
+import * as style from './grant_captcha_modal.style'
 
 interface Props {
   grantCaptchaInfo: GrantCaptchaInfo
@@ -26,7 +26,7 @@ export function GrantCaptchaModal (props: Props) {
   function renderChallenge (message: string) {
     return (
       <>
-        <styles.header>{getString(message)}</styles.header>
+        <style.header>{getString(message)}</style.header>
         <GrantCaptchaChallenge
           grantCaptchaInfo={grantCaptchaInfo}
           onSolve={props.onSolve}
@@ -63,28 +63,28 @@ export function GrantCaptchaModal (props: Props) {
 
     return (
       <>
-        <styles.header>{title}</styles.header>
-        <styles.text>{text}</styles.text>
-        <styles.summary>
-          <styles.summaryItem>
+        <style.header>{title}</style.header>
+        <style.text>{text}</style.text>
+        <style.summary>
+          <style.summaryItem>
             {amountLabel}
-            <styles.summaryValue>
+            <style.summaryValue>
               <TokenAmount amount={grantInfo.amount} />
-            </styles.summaryValue>
-          </styles.summaryItem>
+            </style.summaryValue>
+          </style.summaryItem>
           {
             grantInfo.expiresAt !== null &&
-              <styles.summaryItem>
+              <style.summaryItem>
                 {getString('grantCaptchaExpiration')}
-                <styles.summaryValue>
+                <style.summaryValue>
                   {dateFormatter.format(grantInfo.expiresAt)}
-                </styles.summaryValue>
-              </styles.summaryItem>
+                </style.summaryValue>
+              </style.summaryItem>
           }
-        </styles.summary>
-        <styles.okButton>
+        </style.summary>
+        <style.okButton>
           <button onClick={props.onClose}>{getString('ok')}</button>
-        </styles.okButton>
+        </style.okButton>
       </>
     )
   }
@@ -92,15 +92,15 @@ export function GrantCaptchaModal (props: Props) {
   function renderError () {
     return (
       <>
-        <styles.header>
+        <style.header>
           {getString('grantCaptchaErrorTitle')}
-        </styles.header>
-        <styles.text>
+        </style.header>
+        <style.text>
           {getString('grantCaptchaErrorText')}
-        </styles.text>
-        <styles.okButton>
+        </style.text>
+        <style.okButton>
           <button onClick={props.onClose}>{getString('ok')}</button>
-        </styles.okButton>
+        </style.okButton>
       </>
     )
   }
@@ -116,10 +116,10 @@ export function GrantCaptchaModal (props: Props) {
 
   return (
     <Modal>
-      <styles.root>
+      <style.root>
         <ModalCloseButton onClick={props.onClose} />
         {renderContent()}
-      </styles.root>
+      </style.root>
     </Modal>
   )
 }

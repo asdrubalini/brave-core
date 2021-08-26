@@ -9,7 +9,7 @@ import { PendingRewardsView } from './pending_rewards_view'
 import { TokenAmount } from '../token_amount'
 import { ExchangeAmount } from '../exchange_amount'
 
-import * as styles from './rewards_summary.style'
+import * as style from './rewards_summary.style'
 
 const monthFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'long',
@@ -58,13 +58,13 @@ export function RewardsSummary (props: Props) {
   }
 
   return (
-    <styles.root>
-      <styles.header>
+    <style.root>
+      <style.header>
         <div>{getString('walletRewardsSummary')}</div>
         <div>{monthFormatter.format(Date.now())}</div>
-      </styles.header>
-      <styles.body>
-        <styles.dataTable>
+      </style.header>
+      <style.body>
+        <style.dataTable>
           <table>
             <tbody>
             {
@@ -81,12 +81,12 @@ export function RewardsSummary (props: Props) {
             {renderRow('walletMonthlyTips', data.monthlyTips)}
             </tbody>
           </table>
-        </styles.dataTable>
+        </style.dataTable>
         <PendingRewardsView
           amount={props.earningsLastMonth}
           nextPaymentDate={props.nextPaymentDate}
         />
-      </styles.body>
-    </styles.root>
+      </style.body>
+    </style.root>
   )
 }

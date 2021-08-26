@@ -10,7 +10,7 @@ import { NavBar } from './navbar'
 import { PanelOverlays } from './panel_overlays'
 import { PublisherCard } from './publisher_card'
 
-import * as styles from './panel.style'
+import * as style from './panel.style'
 
 type ActiveView = 'tip' | 'summary'
 
@@ -41,7 +41,7 @@ export function Panel () {
   })
 
   return (
-    <styles.root>
+    <style.root>
       <WalletCard
         balance={balance}
         externalWallet={externalWallet}
@@ -62,6 +62,6 @@ export function Panel () {
         onSettingsClick={host.openRewardsSettings}
       />
       <PanelOverlays />
-    </styles.root>
+    </style.root>
   )
 }
