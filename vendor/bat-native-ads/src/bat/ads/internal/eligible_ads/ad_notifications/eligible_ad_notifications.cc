@@ -12,6 +12,7 @@
 #include "bat/ads/internal/ad_pacing/ad_pacing.h"
 #include "bat/ads/internal/ad_priority/ad_priority.h"
 #include "bat/ads/internal/ad_serving/ad_targeting/geographic/subdivision/subdivision_targeting.h"
+#include "bat/ads/internal/ad_targeting/ad_targeting.h"
 #include "bat/ads/internal/ad_targeting/ad_targeting_segment_util.h"
 #include "bat/ads/internal/ad_targeting/ad_targeting_values.h"
 #include "bat/ads/internal/ads/ad_notifications/ad_notification_exclusion_rules.h"
@@ -51,7 +52,7 @@ void EligibleAds::SetLastServedAd(const CreativeAdInfo& creative_ad) {
   last_served_creative_ad_ = creative_ad;
 }
 
-void EligibleAds::GetForSegments(const SegmentList& segments,
+void EligibleAds::GetForSegments(const SegmentsInfo& segments,
                                  GetEligibleAdsCallback callback) {
   database::table::AdEvents database_table;
   database_table.GetAll([=](const bool success, const AdEventList& ad_events) {
@@ -64,13 +65,9 @@ void EligibleAds::GetForSegments(const SegmentList& segments,
     const int max_count = features::GetBrowsingHistoryMaxCount();
     const int days_ago = features::GetBrowsingHistoryDaysAgo();
     AdsClientHelper::Get()->GetBrowsingHistory(
-        max_count, days_ago, [=](const BrowsingHistoryList& history) {
-          if (segments.empty()) {
-            GetForUntargeted(ad_events, history, callback);
-            return;
-          }
-
-          GetForParentChildSegments(segments, ad_events, history, callback);
+        max_count, days_ago, [=](const BrowsingHistoryList& browsing_history) {
+          GetForParentChildSegments(segments, ad_events, browsing_history,
+                                    callback);
         });
   });
 }
@@ -78,21 +75,26 @@ void EligibleAds::GetForSegments(const SegmentList& segments,
 ///////////////////////////////////////////////////////////////////////////////
 
 void EligibleAds::GetForParentChildSegments(
-    const SegmentList& segments,
+    const SegmentsInfo& segments,
     const AdEventList& ad_events,
     const BrowsingHistoryList& browsing_history,
     GetEligibleAdsCallback callback) const {
-  DCHECK(!segments.empty());
+  const SegmentList top_segments =
+      ad_targeting::GetTopParentChildSegments(segments);
+  if (top_segments.empty()) {
+    GetForParentSegments(segments, ad_events, browsing_history, callback);
+    return;
+  }
 
   BLOG(1, "Get eligible ads for parent-child segments:");
-  for (const auto& segment : segments) {
+  for (const auto& segment : top_segments) {
     BLOG(1, "  " << segment);
   }
 
   database::table::CreativeAdNotifications database_table;
   database_table.GetForSegments(
-      segments, [=](const bool success, const SegmentList& segments,
-                    const CreativeAdNotificationList& ads) {
+      top_segments, [=](const bool success, const SegmentList& top_segments,
+                        const CreativeAdNotificationList& ads) {
         CreativeAdNotificationList eligible_ads =
             FilterIneligibleAds(ads, ad_events, browsing_history);
 
@@ -107,27 +109,25 @@ void EligibleAds::GetForParentChildSegments(
 }
 
 void EligibleAds::GetForParentSegments(
-    const SegmentList& segments,
+    const SegmentsInfo& segments,
     const AdEventList& ad_events,
     const BrowsingHistoryList& browsing_history,
     GetEligibleAdsCallback callback) const {
-  DCHECK(!segments.empty());
-
-  const SegmentList parent_segments = GetParentSegments(segments);
-  if (parent_segments == segments) {
-    callback(/* was_allowed */ false, {});
+  const SegmentList top_segments = ad_targeting::GetTopParentSegments(segments);
+  if (top_segments.empty()) {
+    GetForUntargeted(ad_events, browsing_history, callback);
     return;
   }
 
   BLOG(1, "Get eligible ads for parent segments:");
-  for (const auto& parent_segment : parent_segments) {
-    BLOG(1, "  " << parent_segment);
+  for (const auto& segment : top_segments) {
+    BLOG(1, "  " << segment);
   }
 
   database::table::CreativeAdNotifications database_table;
   database_table.GetForSegments(
-      parent_segments, [=](const bool success, const SegmentList& segments,
-                           const CreativeAdNotificationList& ads) {
+      top_segments, [=](const bool success, const SegmentList& top_segments,
+                        const CreativeAdNotificationList& ads) {
         CreativeAdNotificationList eligible_ads =
             FilterIneligibleAds(ads, ad_events, browsing_history);
 

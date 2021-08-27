@@ -11,6 +11,7 @@
 #include "bat/ads/internal/logging.h"
 
 namespace ads {
+namespace ad_targeting {
 
 SegmentList DeserializeSegments(const std::string& json) {
   SegmentList segments;
@@ -50,4 +51,5 @@ std::string SerializeSegments(const SegmentList& segments) {
   return json;
 }
 
+}  // namespace ad_targeting
 }  // namespace ads

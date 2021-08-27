@@ -7,7 +7,7 @@
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_ELIGIBLE_ADS_AD_NOTIFICATIONS_ELIGIBLE_AD_NOTIFICATIONS_H_
 
 #include "bat/ads/internal/ad_events/ad_event_info.h"
-#include "bat/ads/internal/ad_targeting/ad_targeting_segment.h"
+#include "bat/ads/internal/ad_targeting/ad_targeting_segment_info.h"
 #include "bat/ads/internal/bundle/creative_ad_notification_info.h"
 #include "bat/ads/internal/frequency_capping/frequency_capping_aliases.h"
 
@@ -38,7 +38,7 @@ class EligibleAds {
 
   void SetLastServedAd(const CreativeAdInfo& creative_ad);
 
-  void GetForSegments(const SegmentList& segments,
+  void GetForSegments(const SegmentsInfo& segments,
                       GetEligibleAdsCallback callback);
 
  private:
@@ -49,12 +49,12 @@ class EligibleAds {
 
   CreativeAdInfo last_served_creative_ad_;
 
-  void GetForParentChildSegments(const SegmentList& segments,
+  void GetForParentChildSegments(const SegmentsInfo& segments,
                                  const AdEventList& ad_events,
                                  const BrowsingHistoryList& browsing_history,
                                  GetEligibleAdsCallback callback) const;
 
-  void GetForParentSegments(const SegmentList& segments,
+  void GetForParentSegments(const SegmentsInfo& segments,
                             const AdEventList& ad_events,
                             const BrowsingHistoryList& browsing_history,
                             GetEligibleAdsCallback callback) const;

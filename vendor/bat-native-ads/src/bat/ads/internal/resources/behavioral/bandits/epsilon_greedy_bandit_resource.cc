@@ -7,6 +7,7 @@
 
 #include <string>
 
+#include "bat/ads/internal/ad_targeting/ad_targeting_segment.h"
 #include "bat/ads/internal/ad_targeting/ad_targeting_segment_util.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/catalog/catalog.h"
@@ -23,7 +24,7 @@ SegmentList GetSegments() {
   const std::string json = AdsClientHelper::Get()->GetStringPref(
       prefs::kEpsilonGreedyBanditEligibleSegments);
 
-  return DeserializeSegments(json);
+  return ad_targeting::DeserializeSegments(json);
 }
 
 }  // namespace
@@ -41,7 +42,7 @@ void EpsilonGreedyBandit::LoadFromCatalog(const Catalog& catalog) {
 
   const SegmentList parent_segments = GetParentSegments(segments);
 
-  const std::string json = SerializeSegments(parent_segments);
+  const std::string json = ad_targeting::SerializeSegments(parent_segments);
 
   AdsClientHelper::Get()->SetStringPref(
       prefs::kEpsilonGreedyBanditEligibleSegments, json);

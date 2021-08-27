@@ -9,9 +9,10 @@
 #include <string>
 #include <vector>
 
-#include "bat/ads/internal/ad_targeting/ad_targeting_segment.h"
+#include "bat/ads/internal/ad_targeting/ad_targeting_segment_info.h"
 
 namespace ads {
+// TODO(tmancey): Should this not be namespaced for ad_targeting?
 
 std::vector<std::string> SplitSegment(const std::string& segment);
 

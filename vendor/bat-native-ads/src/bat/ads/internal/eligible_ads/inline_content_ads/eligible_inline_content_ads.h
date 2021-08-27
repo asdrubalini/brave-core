@@ -9,7 +9,7 @@
 #include <string>
 
 #include "bat/ads/internal/ad_events/ad_event_info.h"
-#include "bat/ads/internal/ad_targeting/ad_targeting_segment.h"
+#include "bat/ads/internal/ad_targeting/ad_targeting_segment_info.h"
 #include "bat/ads/internal/bundle/creative_inline_content_ad_info.h"
 #include "bat/ads/internal/frequency_capping/frequency_capping_aliases.h"
 
@@ -40,7 +40,7 @@ class EligibleAds {
 
   void SetLastServedAd(const CreativeAdInfo& creative_ad);
 
-  void GetForSegments(const SegmentList& segments,
+  void GetForSegments(const SegmentsInfo& segments,
                       const std::string& dimensions,
                       GetEligibleAdsCallback callback);
 
@@ -52,13 +52,13 @@ class EligibleAds {
 
   CreativeAdInfo last_served_creative_ad_;
 
-  void GetForParentChildSegments(const SegmentList& segments,
+  void GetForParentChildSegments(const SegmentsInfo& segments,
                                  const std::string& dimensions,
                                  const AdEventList& ad_events,
                                  const BrowsingHistoryList& browsing_history,
                                  GetEligibleAdsCallback callback) const;
 
-  void GetForParentSegments(const SegmentList& segments,
+  void GetForParentSegments(const SegmentsInfo& segments,
                             const std::string& dimensions,
                             const AdEventList& ad_events,
                             const BrowsingHistoryList& browsing_history,

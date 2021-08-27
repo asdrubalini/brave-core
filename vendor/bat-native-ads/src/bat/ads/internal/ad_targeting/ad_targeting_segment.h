@@ -7,16 +7,17 @@
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_AD_TARGETING_AD_TARGETING_SEGMENT_H_
 
 #include <string>
-#include <vector>
+
+#include "bat/ads/internal/ad_targeting/ad_targeting_segment_info.h"
 
 namespace ads {
-
-using SegmentList = std::vector<std::string>;
+namespace ad_targeting {
 
 SegmentList DeserializeSegments(const std::string& json);
 
 std::string SerializeSegments(const SegmentList& segments);
 
+}  // namespace ad_targeting
 }  // namespace ads
 
 #endif  // BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_AD_TARGETING_AD_TARGETING_SEGMENT_H_

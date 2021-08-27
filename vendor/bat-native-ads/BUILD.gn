@@ -224,6 +224,8 @@ source_set("ads") {
     "src/bat/ads/internal/ad_targeting/ad_targeting.h",
     "src/bat/ads/internal/ad_targeting/ad_targeting_segment.cc",
     "src/bat/ads/internal/ad_targeting/ad_targeting_segment.h",
+    "src/bat/ads/internal/ad_targeting/ad_targeting_segment_info.cc",
+    "src/bat/ads/internal/ad_targeting/ad_targeting_segment_info.h",
     "src/bat/ads/internal/ad_targeting/ad_targeting_segment_util.cc",
     "src/bat/ads/internal/ad_targeting/ad_targeting_segment_util.h",
     "src/bat/ads/internal/ad_targeting/ad_targeting_values.h",

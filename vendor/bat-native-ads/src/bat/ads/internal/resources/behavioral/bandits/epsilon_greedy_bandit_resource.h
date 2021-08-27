@@ -8,7 +8,7 @@
 
 #include "bat/ads/internal/resources/resource.h"
 
-#include "bat/ads/internal/ad_targeting/ad_targeting_segment.h"
+#include "bat/ads/internal/ad_targeting/ad_targeting_segment_info.h"
 
 namespace ads {
 

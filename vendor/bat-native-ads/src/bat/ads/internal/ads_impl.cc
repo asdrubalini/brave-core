@@ -498,13 +498,11 @@ void AdsImpl::set(privacy::TokenGeneratorInterface* token_generator) {
 
   conversions_resource_ = std::make_unique<resource::Conversions>();
 
-  ad_targeting_ = std::make_unique<AdTargeting>();
   subdivision_targeting_ =
       std::make_unique<ad_targeting::geographic::SubdivisionTargeting>();
 
   ad_notification_serving_ = std::make_unique<ad_notifications::AdServing>(
-      ad_targeting_.get(), subdivision_targeting_.get(),
-      anti_targeting_resource_.get());
+      subdivision_targeting_.get(), anti_targeting_resource_.get());
   ad_notification_serving_->AddObserver(this);
   ad_notification_ = std::make_unique<AdNotification>();
   ad_notification_->AddObserver(this);
@@ -517,8 +515,7 @@ void AdsImpl::set(privacy::TokenGeneratorInterface* token_generator) {
   ad_transfer_->AddObserver(this);
 
   inline_content_ad_serving_ = std::make_unique<inline_content_ads::AdServing>(
-      ad_targeting_.get(), subdivision_targeting_.get(),
-      anti_targeting_resource_.get());
+      subdivision_targeting_.get(), anti_targeting_resource_.get());
   inline_content_ad_serving_->AddObserver(this);
   inline_content_ad_ = std::make_unique<InlineContentAd>();
   inline_content_ad_->AddObserver(this);
