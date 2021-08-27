@@ -54,9 +54,10 @@ class CreativeInlineContentAds : public Table {
   void GetForCreativeInstanceId(const std::string& creative_instance_id,
                                 GetCreativeInlineContentAdCallback callback);
 
-  void GetForSegments(const SegmentList& segments,
-                      const std::string& dimensions,
-                      GetCreativeInlineContentAdsCallback callback);
+  void GetForSegmentsAndDimensions(
+      const SegmentList& segments,
+      const std::string& dimensions,
+      GetCreativeInlineContentAdsCallback callback);
 
   void GetForDimensions(
       const std::string& dimensions,
@@ -88,9 +89,10 @@ class CreativeInlineContentAds : public Table {
                                   const std::string& creative_instance_id,
                                   GetCreativeInlineContentAdCallback callback);
 
-  void OnGetForSegments(mojom::DBCommandResponsePtr response,
-                        const SegmentList& segments,
-                        GetCreativeInlineContentAdsCallback callback);
+  void OnGetForSegmentsAndDimensions(
+      mojom::DBCommandResponsePtr response,
+      const SegmentList& segments,
+      GetCreativeInlineContentAdsCallback callback);
 
   void OnGetForDimensions(
       mojom::DBCommandResponsePtr response,

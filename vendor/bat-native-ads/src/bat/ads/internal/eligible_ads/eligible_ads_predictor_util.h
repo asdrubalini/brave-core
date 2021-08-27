@@ -18,13 +18,15 @@
 
 namespace ads {
 
-const int kMatchesIntentChildSegmentWeight = 0;
-const int kMatchesIntentParentSegmentWeight = 1;
-const int kMatchesInterestChildSegmentWeight = 2;
-const int kMatchesInterestParentSegmentWeight = 3;
-const int kAdLastSeenInHoursWeight = 4;
-const int kAdvertiserLastSeenInHoursWeight = 5;
-const int kPriorityWeight = 6;
+enum AdPredictorWeightIndex {
+  kMatchesIntentChildSegment = 0,
+  kMatchesIntentParentSegment,
+  kMatchesInterestChildSegment,
+  kMatchesInterestParentSegment,
+  kAdLastSeenInHours,
+  kAdvertiserLastSeenInHours,
+  kPriority
+};
 
 template <typename T>
 AdPredictorInfo<T> ComputePredictorFeatures(
@@ -60,14 +62,15 @@ AdPredictorInfo<T> ComputePredictorFeatures(
 
   const base::Time now = base::Time::Now();
 
-  const base::Time last_seen_ad =
+  const absl::optional<base::Time> last_seen_ad =
       GetLastSeenAdTime(ad_events, ad_predictor.creative_ad);
-  mutable_ad_predictor.ad_last_seen_hours_ago = (now - last_seen_ad).InHours();
+  mutable_ad_predictor.ad_last_seen_hours_ago =
+      last_seen_ad ? (now - last_seen_ad.value()).InHours() : 0;
 
-  const base::Time last_seen_advertiser =
+  const absl::optional<base::Time> last_seen_advertiser =
       GetLastSeenAdvertiserTime(ad_events, ad_predictor.creative_ad);
   mutable_ad_predictor.advertiser_last_seen_hours_ago =
-      (now - last_seen_advertiser).InHours();
+      last_seen_advertiser ? (now - last_seen_advertiser.value()).InHours() : 0;
 
   return mutable_ad_predictor;
 }
@@ -78,31 +81,32 @@ double ComputePredictorScore(const AdPredictorInfo<T>& ad_predictor) {
   double score = 0.0;
 
   if (ad_predictor.does_match_intent_child_segments) {
-    score += weights.at(kMatchesIntentChildSegmentWeight);
+    score += weights.at(AdPredictorWeightIndex::kMatchesIntentChildSegment);
   } else if (ad_predictor.does_match_intent_parent_segments) {
-    score += weights.at(kMatchesIntentParentSegmentWeight);
+    score += weights.at(AdPredictorWeightIndex::kMatchesIntentParentSegment);
   }
 
   if (ad_predictor.does_match_interest_child_segments) {
-    score += weights.at(kMatchesInterestChildSegmentWeight);
+    score += weights.at(AdPredictorWeightIndex::kMatchesInterestChildSegment);
   } else if (ad_predictor.does_match_interest_parent_segments) {
-    score += weights.at(kMatchesInterestParentSegmentWeight);
+    score += weights.at(AdPredictorWeightIndex::kMatchesInterestParentSegment);
   }
 
   if (ad_predictor.ad_last_seen_hours_ago <= base::Time::kHoursPerDay) {
-    score += weights.at(kAdLastSeenInHoursWeight) *
+    score += weights.at(AdPredictorWeightIndex::kAdLastSeenInHours) *
              ad_predictor.ad_last_seen_hours_ago /
              static_cast<double>(base::Time::kHoursPerDay);
   }
 
   if (ad_predictor.advertiser_last_seen_hours_ago <= base::Time::kHoursPerDay) {
-    score += weights.at(kAdvertiserLastSeenInHoursWeight) *
+    score += weights.at(AdPredictorWeightIndex::kAdvertiserLastSeenInHours) *
              ad_predictor.advertiser_last_seen_hours_ago /
              static_cast<double>(base::Time::kHoursPerDay);
   }
 
   if (ad_predictor.creative_ad.priority > 0) {
-    score += weights.at(kPriorityWeight) / ad_predictor.creative_ad.priority;
+    score += weights.at(AdPredictorWeightIndex::kPriority) /
+             ad_predictor.creative_ad.priority;
   }
 
   score *= ad_predictor.creative_ad.ptr;

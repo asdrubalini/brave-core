@@ -219,14 +219,14 @@ TEST(BatAdsContainerUtilTest, CompareEmptySets) {
 
 TEST(BatAdsContainerUtilTest, DoesNotMatchEmptySegments) {
   // Arrange
-  const std::vector<std::string> lhs = {};
-  const std::vector<std::string> rhs = {};
+  const std::vector<std::string> lhs;
+  const std::vector<std::string> rhs;
 
   // Act
   const std::vector<std::string> set_intersection = SetIntersection(lhs, rhs);
 
   // Assert
-  const std::vector<std::string> expected_set_intersection = {};
+  const std::vector<std::string> expected_set_intersection;
   EXPECT_EQ(expected_set_intersection, set_intersection);
 }
 
@@ -239,7 +239,7 @@ TEST(BatAdsContainerUtilTest, DoesNotMatchSegments) {
   const std::vector<std::string> set_intersection = SetIntersection(lhs, rhs);
 
   // Assert
-  const std::vector<std::string> expected_set_intersection = {};
+  const std::vector<std::string> expected_set_intersection;
   EXPECT_EQ(expected_set_intersection, set_intersection);
 }
 

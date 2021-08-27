@@ -8,6 +8,7 @@
 #include "base/guid.h"
 #include "base/test/scoped_feature_list.h"
 #include "bat/ads/internal/bundle/creative_ad_notification_info.h"
+#include "bat/ads/internal/bundle/creative_ad_notification_unittest_util.h"
 #include "bat/ads/internal/eligible_ads/eligible_ads_features.h"
 #include "bat/ads/internal/unittest_util.h"
 
@@ -15,40 +16,6 @@
 
 namespace ads {
 
-namespace {
-
-CreativeAdNotificationInfo GetCreativeAdNotification(const std::string& segment,
-                                                     const double ptr,
-                                                     const int priority) {
-  CreativeAdNotificationInfo creative_ad_notification;
-
-  creative_ad_notification.creative_instance_id = base::GenerateGUID();
-  creative_ad_notification.creative_set_id = base::GenerateGUID();
-  creative_ad_notification.campaign_id = base::GenerateGUID();
-  creative_ad_notification.start_at_timestamp = DistantPastAsTimestamp();
-  creative_ad_notification.end_at_timestamp = DistantFutureAsTimestamp();
-  creative_ad_notification.daily_cap = 1;
-  creative_ad_notification.advertiser_id = base::GenerateGUID();
-  creative_ad_notification.priority = priority;
-  creative_ad_notification.ptr = ptr;
-  creative_ad_notification.per_day = 1;
-  creative_ad_notification.per_week = 1;
-  creative_ad_notification.per_month = 1;
-  creative_ad_notification.total_max = 1;
-  creative_ad_notification.segment = segment;
-  creative_ad_notification.geo_targets = {"US"};
-  creative_ad_notification.target_url = "https://brave.com";
-  CreativeDaypartInfo daypart;
-  creative_ad_notification.dayparts = {daypart};
-  creative_ad_notification.title = "Test Ad Title";
-  creative_ad_notification.body = "Test Ad Body";
-
-  return creative_ad_notification;
-}
-
-}  // namespace
-
-// ComputePredictorScore
 TEST(BatAdsEligibleAdsUtilTest,
      ComputePredictorScoreWithZeroWeightsNotAllowedByGriffin) {
   // Arrange
@@ -127,7 +94,5 @@ TEST(BatAdsEligibleAdsUtilTest, ComputePredictorScoreWithEmptyAdFeatures) {
   const double expected_score = 0;
   EXPECT_EQ(expected_score, ad_predictor.score);
 }
-
-// ComputePredictorFeaturesAndScores
 
 }  // namespace ads

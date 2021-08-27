@@ -77,9 +77,9 @@ void EligibleAds::GetForSegments(const SegmentList& segments,
   });
 }
 
-void EligibleAds::GetForFeatures(const SegmentList& interest_segments,
-                                 const SegmentList& intent_segments,
-                                 GetForFeaturesCallback callback) {
+void EligibleAds::GetFromAdPredictorScores(const SegmentList& interest_segments,
+                                           const SegmentList& intent_segments,
+                                           GetForFeaturesCallback callback) {
   database::table::AdEvents database_table;
   database_table.GetAll([=](const bool success, const AdEventList& ad_events) {
     if (!success) {

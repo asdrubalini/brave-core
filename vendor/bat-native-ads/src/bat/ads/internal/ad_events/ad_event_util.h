@@ -11,6 +11,8 @@
 #include <algorithm>
 
 #include "base/time/time.h"
+#include "bat/ads/internal/bundle/creative_ad_info.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
 
@@ -18,42 +20,12 @@ struct AdInfo;
 
 bool HasFiredAdViewedEvent(const AdInfo& ad, const AdEventList& ad_events);
 
-template <typename T>
-base::Time GetLastSeenAdTime(const AdEventList& ad_events,
-                             const T& creative_ad) {
-  const auto iter = std::find_if(
-      ad_events.begin(), ad_events.end(),
-      [&creative_ad](const AdEventInfo& ad_event) -> bool {
-        return (ad_event.creative_instance_id ==
-                    creative_ad.creative_instance_id &&
-                ad_event.confirmation_type == ConfirmationType::kViewed);
-      });
+absl::optional<base::Time> GetLastSeenAdTime(const AdEventList& ad_events,
+                                             const CreativeAdInfo& creative_ad);
 
-  double timestamp = 0;
-  if (iter != ad_events.end()) {
-    timestamp = iter->timestamp;
-  }
-
-  return base::Time::FromDoubleT(timestamp);
-}
-
-template <typename T>
-base::Time GetLastSeenAdvertiserTime(const AdEventList& ad_events,
-                                     const T& creative_ad) {
-  const auto iter = std::find_if(
-      ad_events.begin(), ad_events.end(),
-      [&creative_ad](const AdEventInfo& ad_event) -> bool {
-        return (ad_event.advertiser_id == creative_ad.advertiser_id &&
-                ad_event.confirmation_type == ConfirmationType::kViewed);
-      });
-
-  double timestamp = 0;
-  if (iter != ad_events.end()) {
-    timestamp = iter->timestamp;
-  }
-
-  return base::Time::FromDoubleT(timestamp);
-}
+absl::optional<base::Time> GetLastSeenAdvertiserTime(
+    const AdEventList& ad_events,
+    const CreativeAdInfo& creative_ad);
 
 }  // namespace ads
 

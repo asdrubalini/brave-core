@@ -11,6 +11,7 @@
 
 #include "base/rand_util.h"
 #include "bat/ads/internal/eligible_ads/ad_predictor_info.h"
+#include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/number_util.h"
 #include "third_party/abseil-cpp/absl/types/optional.h"
 
@@ -31,7 +32,7 @@ template <typename T>
 absl::optional<T> SampleFromAds(
     const std::map<std::string, AdPredictorInfo<T>>& ads) {
   const double normalising_constant = CalculateNormalisingConstant(ads);
-  if (DoubleIsLessEqual(normalising_constant, 0)) {
+  if (DoubleIsLessEqual(normalising_constant, 0.0)) {
     return absl::nullopt;
   }
 
@@ -47,7 +48,7 @@ absl::optional<T> SampleFromAds(
     }
   }
 
-  // Defensive code, should never be reached
+  NOTREACHED() << "Sum should always be strictly less than probability";
   return absl::nullopt;
 }
 

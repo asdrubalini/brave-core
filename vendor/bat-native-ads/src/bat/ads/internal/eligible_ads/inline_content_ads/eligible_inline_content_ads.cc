@@ -79,10 +79,10 @@ void EligibleAds::GetForSegments(const SegmentList& segments,
   });
 }
 
-void EligibleAds::GetForFeatures(const SegmentList& interest_segments,
-                                 const SegmentList& intent_segments,
-                                 const std::string& dimensions,
-                                 GetForFeaturesCallback callback) {
+void EligibleAds::GetFromAdPredictorScores(const SegmentList& interest_segments,
+                                           const SegmentList& intent_segments,
+                                           const std::string& dimensions,
+                                           GetForFeaturesCallback callback) {
   database::table::AdEvents database_table;
   database_table.GetAll([=](const bool success, const AdEventList& ad_events) {
     if (!success) {
@@ -178,7 +178,7 @@ void EligibleAds::GetForParentChildSegments(
   }
 
   database::table::CreativeInlineContentAds database_table;
-  database_table.GetForSegments(
+  database_table.GetForSegmentsAndDimensions(
       segments, dimensions,
       [=](const bool success, const SegmentList& segments,
           const CreativeInlineContentAdList& ads) {
@@ -216,7 +216,7 @@ void EligibleAds::GetForParentSegments(
   }
 
   database::table::CreativeInlineContentAds database_table;
-  database_table.GetForSegments(
+  database_table.GetForSegmentsAndDimensions(
       parent_segments, dimensions,
       [=](const bool success, const SegmentList& segments,
           const CreativeInlineContentAdList& ads) {
@@ -242,7 +242,7 @@ void EligibleAds::GetForUntargeted(const std::string& dimensions,
   const std::vector<std::string> segments = {ad_targeting::kUntargeted};
 
   database::table::CreativeInlineContentAds database_table;
-  database_table.GetForSegments(
+  database_table.GetForSegmentsAndDimensions(
       segments, dimensions,
       [=](const bool success, const SegmentList& segments,
           const CreativeInlineContentAdList& ads) {

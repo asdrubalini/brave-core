@@ -82,9 +82,9 @@ template <typename T>
 std::vector<T> SetIntersection(const std::vector<T>& lhs,
                                const std::vector<T>& rhs) {
   std::vector<T> mutable_lhs = lhs;
-  std::vector<T> mutable_rhs = rhs;
-
   std::sort(mutable_lhs.begin(), mutable_lhs.end());
+
+  std::vector<T> mutable_rhs = rhs;
   std::sort(mutable_rhs.begin(), mutable_rhs.end());
 
   std::vector<T> intersection;

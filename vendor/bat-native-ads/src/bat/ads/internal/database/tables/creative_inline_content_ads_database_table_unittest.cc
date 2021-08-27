@@ -251,7 +251,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
       });
 }
 
-TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest, GetForSegments) {
+TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
+       GetForSegmentsAndDimensions) {
   // Arrange
 
   CreativeInlineContentAdList creative_inline_content_ads;
@@ -454,7 +455,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
 
   const SegmentList segments = {};
 
-  database_table_->GetForSegments(
+  database_table_->GetForSegmentsAndDimensions(
       segments, "200x100",
       [&expected_creative_inline_content_ads](
           const bool success, const SegmentList& segments,
@@ -503,7 +504,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
 
   const SegmentList segments = {"Technology & Computing"};
 
-  database_table_->GetForSegments(
+  database_table_->GetForSegmentsAndDimensions(
       segments, "200x100",
       [&expected_creative_inline_content_ads](
           const bool success, const SegmentList& segments,
@@ -601,7 +602,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   const SegmentList segments = {"Technology & Computing-Software",
                                 "Food & Drink"};
 
-  database_table_->GetForSegments(
+  database_table_->GetForSegmentsAndDimensions(
       segments, "200x100",
       [&expected_creative_inline_content_ads](
           const bool success, const SegmentList& segments,
@@ -675,7 +676,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
 
   const SegmentList segments = {"Food & Drink"};
 
-  database_table_->GetForSegments(
+  database_table_->GetForSegmentsAndDimensions(
       segments, "200x100",
       [&expected_creative_inline_content_ads](
           const bool success, const SegmentList& segments,
@@ -748,7 +749,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
 
   const SegmentList segments = {"FoOd & DrInK"};
 
-  database_table_->GetForSegments(
+  database_table_->GetForSegmentsAndDimensions(
       segments, "200x100",
       [&expected_creative_inline_content_ads](
           const bool success, const SegmentList& segments,

@@ -12,6 +12,7 @@
 #include "base/test/scoped_feature_list.h"
 #include "bat/ads/internal/ad_serving/ad_targeting/geographic/subdivision/subdivision_targeting.h"
 #include "bat/ads/internal/ad_targeting/ad_targeting.h"
+#include "bat/ads/internal/bundle/creative_ad_notification_unittest_util.h"
 #include "bat/ads/internal/database/tables/creative_ad_notifications_database_table.h"
 #include "bat/ads/internal/features/ad_serving/ad_serving_features.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting_resource.h"
@@ -65,33 +66,6 @@ class BatAdsAdNotificationServingTest : public UnitTestBase {
   void RecordUserActivityEvents() {
     UserActivity::Get()->RecordEvent(UserActivityEventType::kOpenedNewTab);
     UserActivity::Get()->RecordEvent(UserActivityEventType::kClosedTab);
-  }
-
-  CreativeAdNotificationInfo GetCreativeAdNotification() {
-    CreativeAdNotificationInfo creative_ad_notification;
-
-    creative_ad_notification.creative_instance_id = base::GenerateGUID();
-    creative_ad_notification.creative_set_id = base::GenerateGUID();
-    creative_ad_notification.campaign_id = base::GenerateGUID();
-    creative_ad_notification.start_at_timestamp = DistantPastAsTimestamp();
-    creative_ad_notification.end_at_timestamp = DistantFutureAsTimestamp();
-    creative_ad_notification.daily_cap = 1;
-    creative_ad_notification.advertiser_id = base::GenerateGUID();
-    creative_ad_notification.priority = 1;
-    creative_ad_notification.ptr = 1.0;
-    creative_ad_notification.per_day = 1;
-    creative_ad_notification.per_week = 1;
-    creative_ad_notification.per_month = 1;
-    creative_ad_notification.total_max = 1;
-    creative_ad_notification.segment = "untargeted";
-    creative_ad_notification.geo_targets = {"US"};
-    creative_ad_notification.target_url = "https://brave.com";
-    CreativeDaypartInfo daypart;
-    creative_ad_notification.dayparts = {daypart};
-    creative_ad_notification.title = "Test Ad Title";
-    creative_ad_notification.body = "Test Ad Body";
-
-    return creative_ad_notification;
   }
 
   void ServeAd() {

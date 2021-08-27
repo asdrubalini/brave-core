@@ -51,13 +51,12 @@ SegmentList AdTargeting::GetSegments() const {
 SegmentList AdTargeting::GetInterestSegments() const {
   SegmentList segments;
 
-  if (features::IsTextClassificationEnabled()) {
-    const ad_targeting::model::TextClassification text_classification_model;
-    const SegmentList text_classification_segments =
-        text_classification_model.GetSegments();
-    segments.insert(segments.end(), text_classification_segments.begin(),
-                    text_classification_segments.end());
+  if (!features::IsTextClassificationEnabled()) {
+    return segments;
   }
+
+  const ad_targeting::model::TextClassification text_classification_model;
+  segments = text_classification_model.GetSegments();
 
   return segments;
 }
@@ -65,13 +64,12 @@ SegmentList AdTargeting::GetInterestSegments() const {
 SegmentList AdTargeting::GetIntentSegments() const {
   SegmentList segments;
 
-  if (features::IsPurchaseIntentEnabled()) {
-    const ad_targeting::model::PurchaseIntent purchase_intent_model;
-    const SegmentList purchase_intent_segments =
-        purchase_intent_model.GetSegments();
-    segments.insert(segments.end(), purchase_intent_segments.begin(),
-                    purchase_intent_segments.end());
+  if (!features::IsPurchaseIntentEnabled()) {
+    return segments;
   }
+
+  const ad_targeting::model::PurchaseIntent purchase_intent_model;
+  segments = purchase_intent_model.GetSegments();
 
   return segments;
 }

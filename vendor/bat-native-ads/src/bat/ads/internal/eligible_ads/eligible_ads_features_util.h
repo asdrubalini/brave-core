@@ -9,9 +9,9 @@
 #include <string>
 #include <vector>
 
-namespace ads {
+#include "bat/ads/internal/eligible_ads/eligible_ads_aliases.h"
 
-using AdPredictorWeights = std::vector<double>;
+namespace ads {
 
 AdPredictorWeights ToAdPredictorWeights(const std::string& param_value);
 

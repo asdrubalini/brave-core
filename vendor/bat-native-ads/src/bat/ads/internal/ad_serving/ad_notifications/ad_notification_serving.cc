@@ -34,7 +34,6 @@ namespace ad_notifications {
 namespace {
 constexpr base::TimeDelta kRetryServingAdAtNextInterval =
     base::TimeDelta::FromMinutes(2);
-const int kVersionUnderTest = 2;
 }  // namespace
 
 AdServing::AdServing(
@@ -113,12 +112,23 @@ void AdServing::MaybeServeAd() {
   // Ads serving to use builder pattern for supporting variants
   const int ad_serving_version = features::GetAdServingVersion();
   BLOG(1, "Ad serving version " << ad_serving_version);
-  if (ad_serving_version == kVersionUnderTest) {
-    MaybeServeAdV2();
-    return;
-  }
 
-  MaybeServeAdV1();
+  switch (ad_serving_version) {
+    case 1: {
+      MaybeServeAdV1();
+      break;
+    }
+
+    case 2: {
+      MaybeServeAdV2();
+      break;
+    }
+
+    default: {
+      NOTREACHED() << "Ad serving version is not supported";
+      break;
+    }
+  }
 }
 
 void AdServing::MaybeServeAdV1() {
@@ -160,10 +170,10 @@ void AdServing::MaybeServeAdV2() {
   const SegmentList interest_segments = ad_targeting_->GetInterestSegments();
   const SegmentList intent_segments = ad_targeting_->GetIntentSegments();
 
-  eligible_ads_->GetForFeatures(
+  eligible_ads_->GetFromAdPredictorScores(
       interest_segments, intent_segments,
       [=](const bool was_allowed,
-          absl::optional<CreativeAdNotificationInfo> ad) {
+          const absl::optional<CreativeAdNotificationInfo> ad) {
         if (was_allowed) {
           p2a::RecordAdOpportunityForSegments(AdType::kAdNotification,
                                               interest_segments);

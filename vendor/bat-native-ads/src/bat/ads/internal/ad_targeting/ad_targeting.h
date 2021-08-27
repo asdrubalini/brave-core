@@ -17,9 +17,7 @@ class AdTargeting {
   ~AdTargeting();
 
   SegmentList GetSegments() const;
-
   SegmentList GetInterestSegments() const;
-
   SegmentList GetIntentSegments() const;
 };
 

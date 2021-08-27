@@ -308,10 +308,10 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetForFeaturesWithoutAds) {
   inline_content_ads::EligibleAds eligible_ads(&subdivision_targeting,
                                                &anti_targeting_resource);
 
-  eligible_ads.GetForFeatures(
+  eligible_ads.GetFromAdPredictorScores(
       intent_segments, interest_segments, "200x100",
       [=](const bool was_allowed,
-          absl::optional<CreativeInlineContentAdInfo> ad) {
+          const absl::optional<CreativeInlineContentAdInfo> ad) {
         EXPECT_EQ(absl::nullopt, ad);
       });
 
@@ -343,10 +343,12 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetForFeaturesWithEmptySegments) {
 
   const CreativeInlineContentAdInfo expected_ad = creative_inline_content_ad_2;
 
-  eligible_ads.GetForFeatures(
+  eligible_ads.GetFromAdPredictorScores(
       intent_segments, interest_segments, "200x100",
       [=](const bool was_allowed,
-          absl::optional<CreativeInlineContentAdInfo> ad) { EXPECT_TRUE(ad); });
+          const absl::optional<CreativeInlineContentAdInfo> ad) {
+        EXPECT_TRUE(ad);
+      });
 
   // Assert
 }
@@ -376,10 +378,12 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetForFeatures) {
 
   const CreativeInlineContentAdInfo expected_ad = creative_inline_content_ad_2;
 
-  eligible_ads.GetForFeatures(
+  eligible_ads.GetFromAdPredictorScores(
       intent_segments, interest_segments, "200x100",
       [=](const bool was_allowed,
-          absl::optional<CreativeInlineContentAdInfo> ad) { EXPECT_TRUE(ad); });
+          const absl::optional<CreativeInlineContentAdInfo> ad) {
+        EXPECT_TRUE(ad);
+      });
 
   // Assert
 }

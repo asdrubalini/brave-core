@@ -46,9 +46,9 @@ class EligibleAds {
   void GetForSegments(const SegmentList& segments,
                       GetForSegmentsCallback callback);
 
-  void GetForFeatures(const SegmentList& interest_segments,
-                      const SegmentList& intent_segments,
-                      GetForFeaturesCallback callback);
+  void GetFromAdPredictorScores(const SegmentList& interest_segments,
+                                const SegmentList& intent_segments,
+                                GetForFeaturesCallback callback);
 
  private:
   ad_targeting::geographic::SubdivisionTargeting*

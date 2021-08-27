@@ -63,24 +63,6 @@ class BatAdsEligibleAdNotificationsTest : public UnitTestBase {
         [](const bool success) { ASSERT_TRUE(success); });
   }
 
-  void Log(const CreativeAdNotificationInfo& creative_ad_notification,
-           int hours_ago) {
-    AdEventInfo ad_event;
-    ad_event.uuid = base::GenerateGUID();
-    ad_event.type = AdType::kAdNotification;
-    ad_event.confirmation_type = ConfirmationType::kViewed;
-    ad_event.campaign_id = creative_ad_notification.campaign_id;
-    ad_event.creative_set_id = creative_ad_notification.creative_set_id;
-    ad_event.creative_instance_id =
-        creative_ad_notification.creative_instance_id;
-    ad_event.advertiser_id = creative_ad_notification.advertiser_id;
-    base::Time timestamp =
-        base::Time::Now() - base::TimeDelta::FromHours(hours_ago);
-    ad_event.timestamp = static_cast<int64_t>(timestamp.ToDoubleT());
-
-    LogAdEvent(ad_event, [](const bool success) { ASSERT_TRUE(success); });
-  }
-
   std::unique_ptr<database::table::CreativeAdNotifications>
       creative_ad_notifications_table_;
 };
@@ -292,10 +274,10 @@ TEST_F(BatAdsEligibleAdNotificationsTest, GetForFeaturesWithoutAds) {
   ad_notifications::EligibleAds eligible_ads(&subdivision_targeting,
                                              &anti_targeting_resource);
 
-  eligible_ads.GetForFeatures(
+  eligible_ads.GetFromAdPredictorScores(
       intent_segments, interest_segments,
       [=](const bool was_allowed,
-          absl::optional<CreativeAdNotificationInfo> ad) {
+          const absl::optional<CreativeAdNotificationInfo> ad) {
         EXPECT_EQ(absl::nullopt, ad);
       });
 
@@ -327,10 +309,12 @@ TEST_F(BatAdsEligibleAdNotificationsTest, GetForFeaturesWithEmptySegments) {
 
   const CreativeAdNotificationInfo expected_ad = creative_ad_notification_2;
 
-  eligible_ads.GetForFeatures(
+  eligible_ads.GetFromAdPredictorScores(
       intent_segments, interest_segments,
       [=](const bool was_allowed,
-          absl::optional<CreativeAdNotificationInfo> ad) { EXPECT_TRUE(ad); });
+          const absl::optional<CreativeAdNotificationInfo> ad) {
+        EXPECT_TRUE(ad);
+      });
 
   // Assert
 }
@@ -360,10 +344,12 @@ TEST_F(BatAdsEligibleAdNotificationsTest, GetForFeatures) {
 
   const CreativeAdNotificationInfo expected_ad = creative_ad_notification_2;
 
-  eligible_ads.GetForFeatures(
+  eligible_ads.GetFromAdPredictorScores(
       intent_segments, interest_segments,
       [=](const bool was_allowed,
-          absl::optional<CreativeAdNotificationInfo> ad) { EXPECT_TRUE(ad); });
+          const absl::optional<CreativeAdNotificationInfo> ad) {
+        EXPECT_TRUE(ad);
+      });
 
   // Assert
 }

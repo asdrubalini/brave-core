@@ -177,7 +177,7 @@ void CreativeInlineContentAds::GetForCreativeInstanceId(
                 std::placeholders::_1, creative_instance_id, callback));
 }
 
-void CreativeInlineContentAds::GetForSegments(
+void CreativeInlineContentAds::GetForSegmentsAndDimensions(
     const SegmentList& segments,
     const std::string& dimensions,
     GetCreativeInlineContentAdsCallback callback) {
@@ -276,7 +276,7 @@ void CreativeInlineContentAds::GetForSegments(
 
   AdsClientHelper::Get()->RunDBTransaction(
       std::move(transaction),
-      std::bind(&CreativeInlineContentAds::OnGetForSegments, this,
+      std::bind(&CreativeInlineContentAds::OnGetForSegmentsAndDimensions, this,
                 std::placeholders::_1, segments, callback));
 }
 
@@ -575,7 +575,7 @@ void CreativeInlineContentAds::OnGetForCreativeInstanceId(
            creative_inline_content_ad);
 }
 
-void CreativeInlineContentAds::OnGetForSegments(
+void CreativeInlineContentAds::OnGetForSegmentsAndDimensions(
     mojom::DBCommandResponsePtr response,
     const SegmentList& segments,
     GetCreativeInlineContentAdsCallback callback) {
