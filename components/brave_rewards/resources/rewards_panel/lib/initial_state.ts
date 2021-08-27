@@ -36,7 +36,6 @@ export function getInitialState (): HostState {
       oneTimeTips: 0,
       monthlyTips: 0
     },
-    notifications: [],
-    notificationsLastViewed: 0
+    notifications: []
   }
 }

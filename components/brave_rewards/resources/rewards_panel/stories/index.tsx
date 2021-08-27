@@ -77,7 +77,7 @@ function createHost (): Host {
       username: 'brave123',
       status: 'verified',
       links: {}
-    },
+    } && null,
     summaryData: {
       adEarnings: 10,
       autoContributions: 10,
@@ -103,8 +103,7 @@ function createHost (): Host {
         provider: 'uphold',
         reason: 'mismatched-provider-accounts'
       } as any
-    ],
-    notificationsLastViewed: Date.now() - 60_000
+    ]
   })
 
   return {
@@ -196,12 +195,6 @@ function createHost (): Host {
         notifications: notifications.filter((n) => {
           return n.id !== notification.id
         })
-      })
-    },
-
-    setNotificationsViewed () {
-      stateManager.update({
-        notificationsLastViewed: Date.now()
       })
     },
 

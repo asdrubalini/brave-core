@@ -42,10 +42,9 @@ export function PanelOverlays () {
     React.useState(host.state.grantCaptchaInfo)
   const [notifications, setNotifications] =
     React.useState(host.state.notifications)
-  const [notificationsLastViewed, setNotificationsLastViewed ] =
-    React.useState(host.state.notificationsLastViewed)
 
   const [showTour, setShowTour] = React.useState(false)
+  const [notificationsHidden, setNotificationsHidden] = React.useState(false)
 
   useHostListener(host, (state) => {
     setRewardsEnabled(state.rewardsEnabled)
@@ -54,7 +53,6 @@ export function PanelOverlays () {
     setExternalWalletProviders(state.externalWalletProviders)
     setGrantCaptchaInfo(state.grantCaptchaInfo)
     setNotifications(state.notifications)
-    setNotificationsLastViewed(state.notificationsLastViewed)
   })
 
   React.useEffect(() => {
@@ -118,17 +116,11 @@ export function PanelOverlays () {
     )
   }
 
-  const activeNotifications = Array.from(notifications)
-    .sort((a, b) => b.timeStamp - a.timeStamp)
-    .filter(n => n.timeStamp > notificationsLastViewed)
-
-  if (activeNotifications.length > 0) {
+  if (notifications.length > 0 && !notificationsHidden) {
+    const onClose = () => { setNotificationsHidden(true) }
     return (
       <NamedOverlay name='notifications'>
-        <NotificationOverlay
-          notifications={activeNotifications}
-          onClose={host.setNotificationsViewed}
-        />
+        <NotificationOverlay notifications={notifications} onClose={onClose} />
       </NamedOverlay>
     )
   }

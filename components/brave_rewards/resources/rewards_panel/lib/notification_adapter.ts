@@ -2,7 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-import { ExternalWalletProvider } from '../../shared/lib/external_wallet'
+import {
+  ExternalWalletProvider,
+  externalWalletProviderFromString
+} from '../../shared/lib/external_wallet'
 
 import {
   Notification,
@@ -21,13 +24,9 @@ function parseGrantId (id: string) {
   return (parts.length > 1 && parts.pop()) || ''
 }
 
-function mapProvider (name: string): ExternalWalletProvider | null {
-  switch (name.toLowerCase()) {
-    case 'uphold': return 'uphold'
-    case 'bitflyer': return 'bitflyer'
-    case 'gemini': return 'gemini'
-  }
-  return null
+function mapProvider (name: string): ExternalWalletProvider {
+  const provider = externalWalletProviderFromString(name.toLocaleLowerCase())
+  return provider ? provider : 'uphold'
 }
 
 enum ExtensionNotificationType {
@@ -45,6 +44,9 @@ enum ExtensionNotificationType {
 // Ensures that the specified object literal matches some type |T|
 function create<T> (obj: T): T { return obj }
 
+// Converts a notification object coming from the extension API into an instance
+// of the |Notification| type. If the object cannot be converted, |null| is
+// returned.
 export function mapNotification (
   obj: RewardsExtension.Notification
 ): Notification | null {
@@ -123,27 +125,29 @@ export function mapNotification (
           return create<ExternalWalletLinkingFailedNotification>({
             ...baseProps,
             type: 'external-wallet-linking-failed',
-            provider: 'uphold', // TODO(zenparsing): We need to add this.
+            // The provider is not currently recorded for this notification
+            provider: mapProvider(''),
             reason: 'device-limit-reached'
           })
         case 'wallet_disconnected':
           return create<ExternalWalletDisconnectedNotification>({
             ...baseProps,
             type: 'external-wallet-disconnected',
-            provider: 'uphold' // TODO(zenparsing): Do we have this?
+            // The provider is not currently recorded for this notification
+            provider: mapProvider('')
           })
         case 'wallet_mismatched_provider_accounts':
           return create<ExternalWalletLinkingFailedNotification>({
             ...baseProps,
             type: 'external-wallet-linking-failed',
-            provider: mapProvider(obj.args[1] || '') || 'uphold', // TODO: ?
+            provider: mapProvider(obj.args[1] || ''),
             reason: 'mismatched-provider-accounts'
           })
         case 'wallet_new_verified':
           return create<ExternalWalletVerifiedNotification>({
             ...baseProps,
             type: 'external-wallet-verified',
-            provider: mapProvider(obj.args[1] || '') || 'uphold' // TODO: ?
+            provider: mapProvider(obj.args[1] || '')
           })
         case 'uphold_bat_not_allowed_for_user':
           return create<ExternalWalletLinkingFailedNotification>({
@@ -176,5 +180,6 @@ export function mapNotification (
       }
       break
   }
+
   return null
 }

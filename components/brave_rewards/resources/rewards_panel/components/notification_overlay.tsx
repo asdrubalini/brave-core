@@ -25,10 +25,14 @@ export function NotificationOverlay (props: Props) {
     return null
   }
 
+  const sortedNotifications = Array.from(props.notifications).sort((a, b) => {
+    return b.timeStamp - a.timeStamp
+  })
+
   return (
     <style.root onClick={onBackgroundClick}>
       <style.card>
-        <NotificationCard notification={props.notifications[0]} />
+        <NotificationCard notification={sortedNotifications[0]} />
         {props.notifications.length > 1 && <style.peek />}
       </style.card>
     </style.root>

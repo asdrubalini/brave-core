@@ -140,7 +140,7 @@ export const contribution = styled.div`
   font-size: 14px;
   line-height: 26px;
   color: var(--brave-palette-neutral600);
-  padding: 6px 0 12px 0;
+  padding: 6px 0 10px 0;
 
   .brave-theme-dark & {
     color: var(--brave-palette-grey600);

@@ -12,7 +12,7 @@ export const root = styled.div`
   font-size: 14px;
   line-height: 18px;
   margin-top: 13px;
-  padding: 25px 30px;
+  padding: 24px 30px;
   display: flex;
 
   button {

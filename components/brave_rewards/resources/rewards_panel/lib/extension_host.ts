@@ -8,22 +8,10 @@ import { ExternalWalletAction } from '../../shared/components/wallet_card'
 import * as apiAdapter from './extension_api_adapter'
 import { getInitialState } from './initial_state'
 import { createStateManager } from '../../shared/lib/state_manager'
+import { createLocalStorageScope } from '../../shared/lib/local_storage_scope'
 
-type LocaleStorageKey =
-  'notifications-last-viewed' |
-  'catcha-grant-id'
-
-function readLocalStorage (key: LocaleStorageKey): unknown {
-  try {
-    return JSON.parse(localStorage.getItem(`rewards-panel-${key}`) || '')
-  } catch {
-    return null
-  }
-}
-
-function writeLocalStorage (key: LocaleStorageKey, value: unknown) {
-  localStorage.setItem(`rewards-panel-${key}`, JSON.stringify(value))
-}
+type LocaleStorageKey = 'catcha-grant-id'
+const panelStorage = createLocalStorageScope<LocaleStorageKey>('rewards-panel')
 
 function closePanel () {
   window.close()
@@ -71,7 +59,7 @@ export function createHost (): Host {
 
   function clearGrantCaptcha () {
     stateManager.update({ grantCaptchaInfo: null })
-    writeLocalStorage('catcha-grant-id', '')
+    panelStorage.writeJSON('catcha-grant-id', '')
   }
 
   function loadCaptcha (grantId: string, status: GrantCaptchaStatus) {
@@ -93,7 +81,7 @@ export function createHost (): Host {
 
     // Store the grant ID so that if the user closes and reopens the panel they
     // can attempt the same captcha.
-    writeLocalStorage('catcha-grant-id', grantId)
+    panelStorage.writeJSON('catcha-grant-id', grantId)
 
     chrome.braveRewards.claimPromotion(grantId, (properties) => {
       stateManager.update({
@@ -151,7 +139,7 @@ export function createHost (): Host {
       return
     }
 
-    const grantId = readLocalStorage('catcha-grant-id')
+    const grantId = panelStorage.readJSON('catcha-grant-id')
     if (grantId && typeof grantId === 'string') {
       location.hash = ''
       loadCaptcha(grantId, 'pending')
@@ -164,10 +152,7 @@ export function createHost (): Host {
       updatePublisherInfo().catch(console.error)
     })
 
-    chrome.braveRewards.onAdsEnabled.addListener(() => {
-      // TODO(zenparsing): We're listening to this event to determine when
-      // rewards has been enabled from onboarding. Ideally, there would be an
-      // |onRewardsEnabled| event.
+    apiAdapter.onRewardsEnabled(() => {
       apiAdapter.getSettings().then((settings) => {
         stateManager.update({ settings })
       }).catch(console.error)
@@ -208,19 +193,6 @@ export function createHost (): Host {
       updateNotifications)
     chrome.rewardsNotifications.onNotificationDeleted.addListener(
       updateNotifications)
-
-    // Read the last notification view time from local storage. If the last view
-    // time is beyond a fixed threshold, reset it. This effectively creates a
-    // snooze mechanism, using notificationsLastViewed as the last snooze time.
-    let notificationsLastViewed = Math.min(
-      Number(readLocalStorage('notifications-last-viewed')) || 0,
-      Date.now())
-
-    if (Date.now() - notificationsLastViewed > 1000 * 60 * 60 * 24) {
-      notificationsLastViewed = 0
-    }
-
-    stateManager.update({ notificationsLastViewed })
 
     await Promise.all([
       apiAdapter.getGrants().then((list) => {
@@ -264,10 +236,7 @@ export function createHost (): Host {
     stateManager.update({ loading: false })
   }
 
-  initialize().catch((error) => {
-    console.error(error)
-    // TODO(zenparsing): Error UX?
-  })
+  initialize().catch(console.error)
 
   // Expose the state manager for debugging purposes
   Object.assign(window, {
@@ -305,7 +274,6 @@ export function createHost (): Host {
       }
 
       stateManager.update({ publisherRefreshing: true })
-      console.log('refreshing publisher')
 
       chrome.braveRewards.refreshPublisher(publisherInfo.id, () => {
         updatePublisherInfo().then(() => {
@@ -372,12 +340,12 @@ export function createHost (): Host {
           return
         }
 
-        const tabId = tabInfo.id
         const { publisherInfo } = stateManager.getState()
         if (!publisherInfo) {
           return
         }
 
+        const tabId = tabInfo.id
         const publisherId = publisherInfo.id
 
         switch (action) {
@@ -422,12 +390,6 @@ export function createHost (): Host {
       stateManager.update({
         notifications: notifications.filter(n => n.id !== notification.id)
       })
-    },
-
-    setNotificationsViewed () {
-      const now = Date.now()
-      stateManager.update({ notificationsLastViewed: now })
-      writeLocalStorage('notifications-last-viewed', now)
     },
 
     solveGrantCaptcha (solution) {

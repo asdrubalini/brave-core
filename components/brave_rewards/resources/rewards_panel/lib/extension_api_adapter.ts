@@ -11,7 +11,8 @@ import { mapNotification } from './notification_adapter'
 import {
   ExternalWallet,
   ExternalWalletProvider,
-  ExternalWalletStatus
+  ExternalWalletStatus,
+  externalWalletProviderFromString
 } from '../../shared/lib/external_wallet'
 
 import {
@@ -22,6 +23,11 @@ import {
   PublisherInfo,
   Settings
 } from './interfaces'
+
+// The functions exported from this module wrap the existing |braveRewards|
+// and |rewardsNotifications| extension API functions in order to reduce the
+// amount of mapping/adapter code found in |extension_host|. As the extension
+// APIs are improved, the need for this adapter will diminish.
 
 export function getRewardsBalance () {
   return new Promise<number>((resolve) => {
@@ -40,21 +46,12 @@ export function getSettings () {
   })
 }
 
-function mapWalletType (type: string): ExternalWalletProvider | null {
-  switch (type) {
-    case 'bitflyer': return 'bitflyer'
-    case 'uphold': return 'uphold'
-    case 'gemini': return 'gemini'
-    default: return null
-  }
-}
-
 export function getExternalWalletProviders () {
   return new Promise<ExternalWalletProvider[]>((resolve) => {
-    // TODO(zenparsing): The extension API currently does not support retrieving
-    // an external wallet provider list.
-    chrome.braveRewards.getExternalWallet((result, wallet) => {
-      const provider = mapWalletType(wallet.type)
+    // The extension API currently does not support retrieving a list of
+    // external wallet providers.
+    chrome.braveRewards.getExternalWallet((_, wallet) => {
+      const provider = externalWalletProviderFromString(wallet.type)
       resolve(provider ? [provider] : [])
     })
   })
@@ -121,11 +118,8 @@ export function getExternalWallet () {
   }
 
   return new Promise<ExternalWallet | null>((resolve) => {
-    chrome.braveRewards.getExternalWallet((result, wallet) => {
-      // TODO: Why does this even report when the access token is expired?
-      // Access token expired: result === 24
-
-      const provider = mapWalletType(wallet.type)
+    chrome.braveRewards.getExternalWallet((_, wallet) => {
+      const provider = externalWalletProviderFromString(wallet.type)
       const status = mapStatus(wallet.status)
 
       if (!provider || !status) {
@@ -244,12 +238,17 @@ export function getGrants () {
 
 export function getRewardsEnabled () {
   return new Promise<boolean>((resolve) => {
-    // TODO(zenparsing): Add a method to get the rewards enabled status directly
-    // instead of inferring it through |showOnboarding|.
+    // Currently, we must use the |showShowOnboarding| function to infer whether
+    // the user has enabled rewards.
     chrome.braveRewards.shouldShowOnboarding((showOnboarding) => {
       resolve(!showOnboarding)
     })
   })
+}
+
+export function onRewardsEnabled (callback: () => void) {
+  // The extension does not currently support an |onRewardsEnabled| function.
+  chrome.braveRewards.onAdsEnabled.addListener(() => { callback() })
 }
 
 function getMonthlyTipAmount (publisherKey: string) {

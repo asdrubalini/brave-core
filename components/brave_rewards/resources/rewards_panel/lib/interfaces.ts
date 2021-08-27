@@ -69,7 +69,6 @@ export interface HostState {
   externalWallet: ExternalWallet | null
   summaryData: RewardsSummaryData
   notifications: Notification[]
-  notificationsLastViewed: number
 }
 
 export type HostListener = (state: HostState) => void
@@ -91,7 +90,6 @@ export interface Host {
   handleExternalWalletAction: (action: ExternalWalletAction) => void
   handleNotificationAction: (action: NotificationAction) => void
   dismissNotification: (notification: Notification) => void
-  setNotificationsViewed: () => void
   solveGrantCaptcha: (solution: { x: number, y: number }) => void
   clearGrantCaptcha: () => void
 }
