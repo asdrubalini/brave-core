@@ -20,6 +20,7 @@
 #include "chrome/browser/ui/layout_constants.h"
 #include "third_party/blink/public/mojom/frame/user_activation_notification_type.mojom-shared.h"
 #include "content/public/browser/storage_partition.h"
+#include "net/http/http_response_headers.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_ink_drop_util.h"
 #include "content/public/browser/navigation_controller.h"
 #include "ui/base/l10n/l10n_util.h"
@@ -30,41 +31,36 @@
 #include "ui/views/background.h"
 #include "ui/views/border.h"
 #include "ui/views/controls/highlight_path_generator.h"
+#include "content/public/browser/storage_usage_info.h"
+#include "components/services/storage/public/mojom/local_storage_control.mojom.h"
+#include "third_party/blink/public/common/storage_key/storage_key.h"
 
 VpnLoginStatusDelegate::VpnLoginStatusDelegate() = default;
 VpnLoginStatusDelegate::~VpnLoginStatusDelegate() = default;
 
-void VpnLoginStatusDelegate::PassiveInsecureContentFound(const GURL& resource_url) {
-  LOG(ERROR) << "BSC]] WHOOPS ] " << resource_url.spec();
+void VpnLoginStatusDelegate::OnGotLocalStorageUsage(
+      const std::vector<content::StorageUsageInfo>& infos) {
+  LOG(ERROR) << "BSC]] OnGotLocalStorageUsage (" << infos.size() << " entries)";
+  for(size_t i = 0; i < infos.size(); i++) {
+    if (infos[i].origin.GetURL() == "https://account.brave.software/") {
+      LOG(ERROR) << "BSC]] total_size_bytes=" << infos[i].total_size_bytes;
+      LOG(ERROR) << "BSC]] origin=" << infos[i].origin.GetURL();
+      LOG(ERROR) << "BSC]] last_modified=" << infos[i].last_modified;
+    }
+  }
 }
 
-bool VpnLoginStatusDelegate::ShouldAllowLazyLoad() {
-  return false;
-}
-
-bool VpnLoginStatusDelegate::ShouldAllowRunningInsecureContent(
-    content::WebContents* web_contents,
-    bool allowed_per_prefs,
-    const url::Origin& origin,
-    const GURL& resource_url) {
-  return true;
-}
-
-void VpnLoginStatusDelegate::OnDidBlockNavigation(
-      content::WebContents* web_contents,
-      const GURL& blocked_url,
-      const GURL& initiator_url,
-      blink::mojom::NavigationBlockedReason reason) {
-  LOG(ERROR) << "BSC]] WHOOPS2 ] " << blocked_url;
-}
-
-void VpnLoginStatusDelegate::UpdateTargetURL(content::WebContents* source,
-    const GURL& url) {
-  LOG(ERROR) << "BSC]] UpdateTargetURL\nurl=" << url;
-}
-
-bool VpnLoginStatusDelegate::ShouldSuppressDialogs(content::WebContents* source){
-  return true;
+//using GetAllCallback = base::OnceCallback<void(std::vector<KeyValuePtr>)>;
+void VpnLoginStatusDelegate::OnGetAll(
+    std::vector<blink::mojom::KeyValuePtr> out_data) {
+  LOG(ERROR) << "BSC]] OnGetAll (" << out_data.size() << " entries)";
+  for (size_t i = 0; i < out_data.size(); i++) {
+    LOG(ERROR) << "BSC]] KEY - BEGIN";
+    for (size_t j = 0; j < out_data[i]->key.size(); j++) {
+      LOG(ERROR) << ((char)out_data[i]->key[j]);
+    }
+    LOG(ERROR) << "BSC]] KEY - END";
+  }
 }
 
 void VpnLoginStatusDelegate::LoadingStateChanged(content::WebContents* source,
@@ -103,10 +99,56 @@ void VpnLoginStatusDelegate::LoadingStateChanged(content::WebContents* source,
 
     // Storage path is accessible
     auto* storage = main_frame->GetStoragePartition();
-    LOG(ERROR) << "BSC]] storage GetPath() " << storage->GetPath();
+    // LOG(ERROR) << "BSC]] storage GetPath() " << storage->GetPath();
+    // LOG(ERROR) << "BSC]] storage GetBucketBasePath() " << storage->GetBucketBasePath();
+
+    auto* dsc = storage->GetDOMStorageContext();
+    dsc->GetLocalStorageUsage(
+        base::BindOnce(&VpnLoginStatusDelegate::OnGotLocalStorageUsage,
+                       base::Unretained(this)));
+
+    mojo::Remote<blink::mojom::StorageArea> area;
+    blink::StorageKey storage_key =
+        blink::StorageKey::CreateFromStringForTesting(
+            "https://account.brave.software/");
+    auto* lsc = storage->GetLocalStorageControl();
+    lsc->BindStorageArea(
+        url::Origin::Create(GURL("https://account.brave.software/")),
+        area.BindNewPipeAndPassReceiver());
+
+    // std::vector<blink::mojom::KeyValuePtr> out_data;
+    //area->GetAll(mojo::NullRemote(), &out_data);
+    mojo::PendingRemote<blink::mojom::StorageAreaObserver> unused_observer;
+    area->GetAll(std::move(unused_observer),
+                 base::BindOnce(&VpnLoginStatusDelegate::OnGetAll,
+                                base::Unretained(this)));
+
+    // for(size_t i = 0; i < out_data.size(); i++) {
+    //   LOG(ERROR) << "BSC]] KEY - BEGIN";
+    //   for (size_t j = 0; j < out_data[i]->key.size(); j++) {
+    //     LOG(ERROR) << ((char)out_data[i]->key[j]);
+    //   }
+    //   LOG(ERROR) << "BSC]] KEY - END";
+    // }
+
+    // auto* headers = main_frame->GetLastResponseHeaders();
+
+    // LOG(ERROR) << "BSC]] HEADERS";
+    // LOG(ERROR) << "BSC]] GetStatusLine() " << headers->GetStatusLine();
+    // LOG(ERROR) << "BSC]] GetStatusText() `" << headers->GetStatusText() << "`";
+
+    // size_t header_id = 0;
+    // std::string name = "";
+    // std::string value = "";
+    // while (headers->EnumerateHeaderLines(&header_id, &name, &value)) {
+    //   LOG(ERROR) << "BSC]] EnumerateHeaderLines] `" << name << "` = `" << value << "`";
+    // }
+
+    // LOG(ERROR) << "BSC]] OTHER";
+    // LOG(ERROR) << "BSC]] GetLastCommittedURL() `" << main_frame->GetLastCommittedURL() << "`";
 
     // I thought maybe this would help "activate" the web contents, but it doesn't do anything
-    main_frame->NotifyUserActivation(blink::mojom::UserActivationNotificationType::kInteraction);
+    // main_frame->NotifyUserActivation(blink::mojom::UserActivationNotificationType::kInteraction);
   }
 }
 
