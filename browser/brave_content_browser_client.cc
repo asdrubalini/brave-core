@@ -48,6 +48,7 @@
 #include "brave/components/gemini/browser/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/speedreader/buildflags.h"
+#include "brave/components/speedreader/speedreader_util.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "brave/grit/brave_generated_resources.h"
 #include "chrome/browser/browser_process.h"
@@ -499,7 +500,7 @@ BraveContentBrowserClient::CreateURLLoaderThrottles(
       request, browser_context, wc_getter, navigation_ui_data,
       frame_tree_node_id);
 #if BUILDFLAG(ENABLE_SPEEDREADER)
-  using DistillState = speedreader::SpeedreaderTabHelper::DistillState;
+  using DistillState = speedreader::DistillState;
   content::WebContents* contents = wc_getter.Run();
   if (!contents) {
     return result;
@@ -508,7 +509,7 @@ BraveContentBrowserClient::CreateURLLoaderThrottles(
       speedreader::SpeedreaderTabHelper::FromWebContents(contents);
   if (tab_helper) {
     const auto state = tab_helper->PageDistillState();
-    if (speedreader::SpeedreaderTabHelper::PageWantsDistill(state) &&
+    if (speedreader::PageWantsDistill(state) &&
         request.resource_type ==
             static_cast<int>(blink::mojom::ResourceType::kMainFrame)) {
       // Only check for disabled sites if we are in Speedreader mode
