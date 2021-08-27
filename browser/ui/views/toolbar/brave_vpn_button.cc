@@ -34,6 +34,8 @@
 #include "content/public/browser/storage_usage_info.h"
 #include "components/services/storage/public/mojom/local_storage_control.mojom.h"
 #include "third_party/blink/public/common/storage_key/storage_key.h"
+#include "content/common/navigation_client.mojom.h"
+#include "mojo/public/cpp/bindings/sync_call_restrictions.h"
 
 VpnLoginStatusDelegate::VpnLoginStatusDelegate() = default;
 VpnLoginStatusDelegate::~VpnLoginStatusDelegate() = default;
@@ -97,6 +99,11 @@ void VpnLoginStatusDelegate::LoadingStateChanged(content::WebContents* source,
     // - does the web contents need to be marked as being user opened?
     auto* main_frame = source->GetMainFrame();
 
+    // NOTES PART 2:
+    // I couldn't figure out above problem.
+    // but I did figure out you can access local storage directly
+    // this is better.
+
     // Storage path is accessible
     auto* storage = main_frame->GetStoragePartition();
     // LOG(ERROR) << "BSC]] storage GetPath() " << storage->GetPath();
@@ -107,29 +114,41 @@ void VpnLoginStatusDelegate::LoadingStateChanged(content::WebContents* source,
         base::BindOnce(&VpnLoginStatusDelegate::OnGotLocalStorageUsage,
                        base::Unretained(this)));
 
-    mojo::Remote<blink::mojom::StorageArea> area;
-    blink::StorageKey storage_key =
-        blink::StorageKey::CreateFromStringForTesting(
-            "https://account.brave.software/");
     auto* lsc = storage->GetLocalStorageControl();
+//InitWithNewPipeAndPassReceiver
+    mojo::Remote<blink::mojom::StorageArea> storage_area_remote;
     lsc->BindStorageArea(
         url::Origin::Create(GURL("https://account.brave.software/")),
-        area.BindNewPipeAndPassReceiver());
+        storage_area_remote.BindNewPipeAndPassReceiver());
 
-    // std::vector<blink::mojom::KeyValuePtr> out_data;
-    //area->GetAll(mojo::NullRemote(), &out_data);
-    mojo::PendingRemote<blink::mojom::StorageAreaObserver> unused_observer;
-    area->GetAll(std::move(unused_observer),
-                 base::BindOnce(&VpnLoginStatusDelegate::OnGetAll,
-                                base::Unretained(this)));
+    // PROPER ASYNC WAY
+    // Problem here is that the callback never gets called!
+    //
+    // mojo::PendingRemote<blink::mojom::StorageAreaObserver> unused_observer;
+    // storage_area_remote->GetAll(
+    //     std::move(unused_observer),
+    //     base::BindOnce(&VpnLoginStatusDelegate::OnGetAll,
+    //                    base::Unretained(this)));
 
-    // for(size_t i = 0; i < out_data.size(); i++) {
-    //   LOG(ERROR) << "BSC]] KEY - BEGIN";
-    //   for (size_t j = 0; j < out_data[i]->key.size(); j++) {
-    //     LOG(ERROR) << ((char)out_data[i]->key[j]);
-    //   }
-    //   LOG(ERROR) << "BSC]] KEY - END";
-    // }
+
+    // HORRIBLE SYNC WAY
+    // requires a hack to src/mojo/public/cpp/bindings/sync_call_restrictions.h
+    // this actually DOES work though!
+    mojo::SyncCallRestrictions::ScopedAllowSyncCall scoped_allow;
+    std::vector<blink::mojom::KeyValuePtr> out_data;
+    storage_area_remote->GetAll(mojo::NullRemote(), &out_data);
+    for(size_t i = 0; i < out_data.size(); i++) {
+      std::string the_key = "";
+      std::string the_value = "";
+      for (size_t j = 0; j < out_data[i]->key.size(); j++) {
+        the_key += ((char)out_data[i]->key[j]);
+      }
+      for (size_t j = 0; j < out_data[i]->value.size(); j++) {
+        the_value += ((char)out_data[i]->value[j]);
+      }
+      LOG(ERROR) << "BSC]] KEY: `" << the_key << "`";
+      LOG(ERROR) << "BSC]] VALUE: `" << the_value << "`";
+    }
 
     // auto* headers = main_frame->GetLastResponseHeaders();
 
