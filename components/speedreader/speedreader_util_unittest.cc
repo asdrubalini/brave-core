@@ -11,7 +11,7 @@ namespace speedreader {
 
 TEST(SpeedreaderUtilTest, URLHasHints) {
   EXPECT_FALSE(URLReadableHintExtractor::GetInstance()->HasHints(
-      GURL("https://github.com/brave/brave-core")));
+      GURL("https://github.com/asdrubalini/brave-core")));
 
   // URL has date in path
   EXPECT_TRUE(URLReadableHintExtractor::GetInstance()->HasHints(

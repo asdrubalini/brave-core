@@ -8,8 +8,8 @@ import json
 import requests
 from .config import get_raw_version, get_env_var
 
-BRAVE_REPO = "brave/brave-browser"
-BRAVE_CORE_REPO = "brave/brave-core"
+BRAVE_REPO = "asdrubalini/brave-browser"
+BRAVE_CORE_REPO = "asdrubalini/brave-core"
 
 
 def channels():
