@@ -49,7 +49,7 @@ const locale = {
   topNavAccounts: 'Accounts',
 
   // Chart Timeline Buttons
-  chartLive: 'LIVE',
+  chartLive: '1H',
   chartOneDay: '1D',
   chartOneWeek: '1W',
   chartOneMonth: '1M',
@@ -275,7 +275,14 @@ const locale = {
   // Transaction Detail Box
   transactionDetailBoxFunction: 'FUNCTION TYPE',
   transactionDetailBoxHex: 'HEX DATA',
-  transactionDetailBoxBytes: 'BYTES'
+  transactionDetailBoxBytes: 'BYTES',
+
+  // Connect With Site Panel
+  connectWithSiteTitle: 'Select accounts(s)',
+  connectWithSiteDescription1: 'View the addressess of your',
+  connectWithSiteDescription2: 'permitted accounts (required)',
+  connectWithSiteNext: 'Next',
+  connectWithSiteHeaderTitle: 'Connect With Brave Wallet'
 }
 
 export default locale
