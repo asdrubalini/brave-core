@@ -19,6 +19,7 @@
 #include "mojo/public/cpp/bindings/pending_remote.h"
 #include "mojo/public/cpp/bindings/receiver_set.h"
 #include "mojo/public/cpp/bindings/remote_set.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 class PrefService;
 
@@ -100,9 +101,16 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
   void IsLocked(IsLockedCallback callback) override;
   void AddAccount(const std::string& account_name,
                   AddAccountCallback callback) override;
-  void AddImportedAccount(const std::string& account_name,
-                          const std::string& private_key,
-                          AddImportedAccountCallback callback) override;
+  void GetPrivateKeyForDefaultKeyringAccount(
+      const std::string& address,
+      GetPrivateKeyForDefaultKeyringAccountCallback callback) override;
+  void ImportAccount(const std::string& account_name,
+                     const std::string& private_key,
+                     ImportAccountCallback callback) override;
+  void ImportAccountFromJson(const std::string& account_name,
+                             const std::string& password,
+                             const std::string& json,
+                             ImportAccountCallback callback) override;
   void GetPrivateKeyForImportedAccount(
       const std::string& address,
       GetPrivateKeyForImportedAccountCallback callback) override;
@@ -112,6 +120,14 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
   void NotifyWalletBackupComplete() override;
   void GetDefaultKeyringInfo(GetDefaultKeyringInfoCallback callback) override;
   void Reset() override;
+  void SetDefaultKeyringDerivedAccountName(
+      const std::string& address,
+      const std::string& name,
+      SetDefaultKeyringDerivedAccountNameCallback callback) override;
+  void SetDefaultKeyringImportedAccountName(
+      const std::string& address,
+      const std::string& name,
+      SetDefaultKeyringImportedAccountNameCallback callback) override;
 
   bool IsDefaultKeyringCreated();
 
@@ -150,8 +166,17 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
   FRIEND_TEST_ALL_PREFIXES(KeyringControllerUnitTest, CreateAndRestoreWallet);
   FRIEND_TEST_ALL_PREFIXES(KeyringControllerUnitTest, AddAccount);
   FRIEND_TEST_ALL_PREFIXES(KeyringControllerUnitTest, ImportedAccounts);
+  FRIEND_TEST_ALL_PREFIXES(KeyringControllerUnitTest,
+                           GetPrivateKeyForDefaultKeyringAccount);
+  FRIEND_TEST_ALL_PREFIXES(KeyringControllerUnitTest,
+                           SetDefaultKeyringDerivedAccountName);
 
   void AddAccountForDefaultKeyring(const std::string& account_name);
+
+  // Address will be returned when success
+  absl::optional<std::string> ImportAccountForDefaultKeyring(
+      const std::string& account_name,
+      const std::vector<uint8_t>& private_key);
 
   size_t GetAccountMetasNumberForKeyring(const std::string& id);
 
@@ -179,6 +204,8 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
                                    const std::string& password);
   // It's used to reconstruct same default keyring between browser relaunch
   HDKeyring* ResumeDefaultKeyring(const std::string& password);
+
+  void NotifyAccountsChanged();
 
   std::unique_ptr<PasswordEncryptor> encryptor_;
   std::unique_ptr<HDKeyring> default_keyring_;

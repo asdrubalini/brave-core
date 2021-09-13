@@ -9,10 +9,10 @@
 #include <functional>
 #include <vector>
 
+#include "base/check.h"
 #include "base/guid.h"
 #include "base/json/json_writer.h"
 #include "base/time/time.h"
-#include "base/values.h"
 #include "bat/ads/confirmation_type.h"
 #include "bat/ads/internal/account/ad_rewards/ad_rewards_util.h"
 #include "bat/ads/internal/account/confirmations/confirmations_state.h"
@@ -25,6 +25,7 @@
 #include "bat/ads/internal/tokens/redeem_unblinded_token/create_confirmation_util.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_token/redeem_unblinded_token.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_token/user_data/confirmation_dto_user_data_builder.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
 

@@ -856,7 +856,7 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
         Rotate
       </message>
       <message name="IDS_SETTINGS_ADD_PEER_DIALOG_PLACEHOLDER" desc="The placholder of the dialog to add new peer on IPFS Settings page">
-        /ip4/46.21.210.45/tcp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2
+        /ip4/46.21.210.45/udp/14406/quic/p2p/12D3KooWBdmLJjhpgJ9KZgLM3f894ff9xyBfPvPjFNn7MKJpyrC2
       </message>
       <message name="IDS_SETTINGS_IPNS_ADD_PEER_DIALOG_ERROR" desc="The error message for the add peer dialog on IPFS Settings page if the peer name is not valid">
         This name is not valid
@@ -959,6 +959,9 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
       </message>
      <message name="IDS_SETTINGS_HANGOUTS_ENABLED_DESC" desc="The description for Hangouts switch in settings">
         Uses Hangouts component to enable screen sharing and other features in the browser.
+      </message>
+     <message name="IDS_SETTINGS_MEDIA_ROUTER_ENABLED_DESC" desc="The description for media router switch in settings">
+        Media router enables cast feature in the browser.
       </message>
      <message name="IDS_SETTINGS_RESTART_NOTICE" desc="Notifies the user that they need to relaunch Brave">
         Your changes will take effect the next time you relaunch Brave.
@@ -1350,9 +1353,20 @@ By installing this extension, you are agreeing to the Google Widevine Terms of U
         </message>
       </if>
       <!-- Brave VPN -->
-      <message name="IDS_BRAVE_VPN_TOOLBAR_BUTTON_TEXT" desc="Text for vpn button in toolbar.">
-        VPN
-      </message>
+      <if expr="enable_brave_vpn">
+        <message name="IDS_SETTINGS_SHOW_VPN_BUTTON" desc="The label for showing vpn button in the toolbar">
+          Show VPN button
+        </message>
+        <message name="IDS_SETTINGS_SHOW_VPN_BUTTON_SUB_LABEL" desc="The sub label for vpn button setting">
+            Shows the VPN button in the toolbar
+        </message>
+        <message name="IDS_BRAVE_VPN_TOOLBAR_BUTTON_TEXT" desc="Text for vpn button in toolbar.">
+          VPN
+        </message>
+        <message name="IDS_BRAVE_VPN_MENU" desc="The Brave VPN item (app menu)">
+          Brave VPN
+        </message>
+      </if>
       <message name="IDS_BRAVE_BOOKMARK_MANAGER_EMPTY_LIST" desc="">
         To add a bookmark, click the bookmark button next to the address bar
       </message>

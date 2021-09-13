@@ -9,7 +9,6 @@
 
 #include "base/guid.h"
 #include "bat/ads/internal/ad_serving/ad_targeting/geographic/subdivision/subdivision_targeting.h"
-#include "bat/ads/internal/ad_targeting/ad_targeting.h"
 #include "bat/ads/internal/database/tables/creative_ad_notifications_database_table.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting_resource.h"
 #include "bat/ads/internal/unittest_base.h"
@@ -80,6 +79,7 @@ class BatAdsAdNotificationServingTest : public UnitTestBase {
     creative_ad_notification.per_week = 1;
     creative_ad_notification.per_month = 1;
     creative_ad_notification.total_max = 1;
+    creative_ad_notification.value = 1.0;
     creative_ad_notification.segment = "untargeted";
     creative_ad_notification.geo_targets = {"US"};
     creative_ad_notification.target_url = "https://brave.com";
@@ -92,11 +92,10 @@ class BatAdsAdNotificationServingTest : public UnitTestBase {
   }
 
   void ServeAd() {
-    AdTargeting ad_targeting;
     ad_targeting::geographic::SubdivisionTargeting subdivision_targeting;
     resource::AntiTargeting anti_targeting_resource;
-    ad_notifications::AdServing ad_serving(
-        &ad_targeting, &subdivision_targeting, &anti_targeting_resource);
+    ad_notifications::AdServing ad_serving(&subdivision_targeting,
+                                           &anti_targeting_resource);
 
     ad_serving.MaybeServeAd();
   }

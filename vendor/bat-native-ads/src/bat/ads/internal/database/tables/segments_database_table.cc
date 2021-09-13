@@ -5,15 +5,17 @@
 
 #include "bat/ads/internal/database/tables/segments_database_table.h"
 
+#include <algorithm>
+#include <functional>
 #include <utility>
 
+#include "base/check.h"
 #include "base/strings/string_util.h"
 #include "base/strings/stringprintf.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/database/database_statement_util.h"
 #include "bat/ads/internal/database/database_table_util.h"
 #include "bat/ads/internal/database/database_util.h"
-#include "bat/ads/internal/logging.h"
 
 namespace ads {
 namespace database {
@@ -61,8 +63,8 @@ void Segments::Migrate(mojom::DBTransaction* transaction,
   DCHECK(transaction);
 
   switch (to_version) {
-    case 15: {
-      MigrateToV15(transaction);
+    case 16: {
+      MigrateToV16(transaction);
       break;
     }
 
@@ -104,7 +106,7 @@ std::string Segments::BuildInsertOrUpdateQuery(
       BuildBindingParameterPlaceholders(2, count).c_str());
 }
 
-void Segments::CreateTableV15(mojom::DBTransaction* transaction) {
+void Segments::CreateTableV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
   const std::string query = base::StringPrintf(
@@ -122,12 +124,12 @@ void Segments::CreateTableV15(mojom::DBTransaction* transaction) {
   transaction->commands.push_back(std::move(command));
 }
 
-void Segments::MigrateToV15(mojom::DBTransaction* transaction) {
+void Segments::MigrateToV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
   util::Drop(transaction, get_table_name());
 
-  CreateTableV15(transaction);
+  CreateTableV16(transaction);
 }
 
 }  // namespace table

@@ -57,7 +57,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_1.priority = 2;
   info_1.per_day = 3;
   info_1.total_max = 4;
-  info_1.segment = "Food & Drink";
+  info_1.value = 1.0;
+  info_1.segment = "food & drink";
   info_1.dayparts.push_back(daypart_info);
   info_1.geo_targets = {"US"};
   info_1.target_url = "https://brave.com/1";
@@ -80,7 +81,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_2.priority = 6;
   info_2.per_day = 7;
   info_2.total_max = 8;
-  info_2.segment = "Technology & Computing-Software";
+  info_2.value = 1.0;
+  info_2.segment = "technology & computing-software";
   info_2.dayparts.push_back(daypart_info);
   info_2.geo_targets = {"US"};
   info_2.target_url = "https://brave.com/2";
@@ -128,7 +130,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_1.priority = 2;
   info_1.per_day = 3;
   info_1.total_max = 4;
-  info_1.segment = "Food & Drink";
+  info_1.value = 1.0;
+  info_1.segment = "food & drink";
   info_1.dayparts.push_back(daypart_info);
   info_1.geo_targets = {"US"};
   info_1.target_url = "https://brave.com/1";
@@ -151,7 +154,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_2.priority = 6;
   info_2.per_day = 7;
   info_2.total_max = 8;
-  info_2.segment = "Technology & Computing-Software";
+  info_2.value = 1.0;
+  info_2.segment = "technology & computing-software";
   info_2.dayparts.push_back(daypart_info);
   info_2.geo_targets = {"US"};
   info_2.target_url = "https://brave.com/2";
@@ -174,6 +178,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_3.priority = 2;
   info_3.per_day = 3;
   info_3.total_max = 4;
+  info_3.value = 1.0;
   info_3.segment = "Finance-Banking";
   info_3.dayparts.push_back(daypart_info);
   info_3.geo_targets = {"US"};
@@ -220,7 +225,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info.priority = 2;
   info.per_day = 3;
   info.total_max = 4;
-  info.segment = "Food & Drink";
+  info.value = 1.0;
+  info.segment = "food & drink";
   info.dayparts.push_back(daypart_info);
   info.geo_targets = {"US"};
   info.target_url = "https://brave.com";
@@ -268,7 +274,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest, GetForSegments) {
   info_1.priority = 2;
   info_1.per_day = 3;
   info_1.total_max = 4;
-  info_1.segment = "Food & Drink";
+  info_1.value = 1.0;
+  info_1.segment = "food & drink";
   info_1.dayparts.push_back(daypart_info);
   info_1.geo_targets = {"US"};
   info_1.target_url = "https://brave.com/1";
@@ -291,7 +298,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest, GetForSegments) {
   info_2.priority = 6;
   info_2.per_day = 7;
   info_2.total_max = 8;
-  info_2.segment = "Technology & Computing-Software";
+  info_2.value = 1.0;
+  info_2.segment = "technology & computing-software";
   info_2.dayparts.push_back(daypart_info);
   info_2.geo_targets = {"US"};
   info_2.target_url = "https://brave.com/2";
@@ -338,7 +346,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info.priority = 2;
   info.per_day = 3;
   info.total_max = 4;
-  info.segment = "Food & Drink";
+  info.value = 1.0;
+  info.segment = "food & drink";
   info.dayparts.push_back(daypart_info);
   info.geo_targets = {"US"};
   info.target_url = "https://brave.com";
@@ -388,7 +397,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info.priority = 2;
   info.per_day = 3;
   info.total_max = 4;
-  info.segment = "Food & Drink";
+  info.value = 1.0;
+  info.segment = "food & drink";
   info.dayparts.push_back(daypart_info);
   info.geo_targets = {"US"};
   info.target_url = "https://brave.com";
@@ -433,7 +443,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info.priority = 2;
   info.per_day = 3;
   info.total_max = 4;
-  info.segment = "Food & Drink";
+  info.value = 1.0;
+  info.segment = "food & drink";
   info.dayparts.push_back(daypart_info);
   info.geo_targets = {"US"};
   info.target_url = "https://brave.com";
@@ -482,7 +493,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info.priority = 2;
   info.per_day = 3;
   info.total_max = 4;
-  info.segment = "Food & Drink";
+  info.value = 1.0;
+  info.segment = "food & drink";
   info.dayparts.push_back(daypart_info);
   info.geo_targets = {"US"};
   info.target_url = "https://brave.com";
@@ -501,7 +513,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   // Assert
   const CreativeInlineContentAdList expected_creative_inline_content_ads = {};
 
-  const SegmentList segments = {"Technology & Computing"};
+  const SegmentList segments = {"technology & computing"};
 
   database_table_->GetForSegments(
       segments, "200x100",
@@ -531,7 +543,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_1.priority = 2;
   info_1.per_day = 3;
   info_1.total_max = 4;
-  info_1.segment = "Food & Drink";
+  info_1.value = 1.0;
+  info_1.segment = "food & drink";
   info_1.dayparts.push_back(daypart_info);
   info_1.geo_targets = {"US"};
   info_1.target_url = "https://brave.com/1";
@@ -554,7 +567,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_2.priority = 6;
   info_2.per_day = 7;
   info_2.total_max = 8;
-  info_2.segment = "Technology & Computing-Software";
+  info_2.value = 1.0;
+  info_2.segment = "technology & computing-software";
   info_2.dayparts.push_back(daypart_info);
   info_2.geo_targets = {"US"};
   info_2.target_url = "https://brave.com/2";
@@ -577,6 +591,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_3.priority = 2;
   info_3.per_day = 3;
   info_3.total_max = 4;
+  info_3.value = 1.0;
   info_3.segment = "Finance-Banking";
   info_3.dayparts.push_back(daypart_info);
   info_3.geo_targets = {"US"};
@@ -598,8 +613,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   expected_creative_inline_content_ads.push_back(info_1);
   expected_creative_inline_content_ads.push_back(info_2);
 
-  const SegmentList segments = {"Technology & Computing-Software",
-                                "Food & Drink"};
+  const SegmentList segments = {"technology & computing-software",
+                                "food & drink"};
 
   database_table_->GetForSegments(
       segments, "200x100",
@@ -629,7 +644,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_1.priority = 2;
   info_1.per_day = 3;
   info_1.total_max = 4;
-  info_1.segment = "Food & Drink";
+  info_1.value = 1.0;
+  info_1.segment = "food & drink";
   info_1.dayparts.push_back(daypart_info);
   info_1.geo_targets = {"US"};
   info_1.target_url = "https://brave.com/1";
@@ -652,7 +668,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_2.priority = 6;
   info_2.per_day = 7;
   info_2.total_max = 8;
-  info_2.segment = "Food & Drink";
+  info_2.value = 1.0;
+  info_2.segment = "food & drink";
   info_2.dayparts.push_back(daypart_info);
   info_2.geo_targets = {"US"};
   info_2.target_url = "https://brave.com/2";
@@ -673,7 +690,7 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   CreativeInlineContentAdList expected_creative_inline_content_ads;
   expected_creative_inline_content_ads.push_back(info_2);
 
-  const SegmentList segments = {"Food & Drink"};
+  const SegmentList segments = {"food & drink"};
 
   database_table_->GetForSegments(
       segments, "200x100",
@@ -703,7 +720,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_1.priority = 2;
   info_1.per_day = 3;
   info_1.total_max = 4;
-  info_1.segment = "Food & Drink";
+  info_1.value = 1.0;
+  info_1.segment = "food & drink";
   info_1.dayparts.push_back(daypart_info);
   info_1.geo_targets = {"US"};
   info_1.target_url = "https://brave.com/1";
@@ -726,7 +744,8 @@ TEST_F(BatAdsCreativeInlineContentAdsDatabaseTableTest,
   info_2.priority = 6;
   info_2.per_day = 7;
   info_2.total_max = 8;
-  info_2.segment = "Technology & Computing-Software";
+  info_2.value = 1.0;
+  info_2.segment = "technology & computing-software";
   info_2.dayparts.push_back(daypart_info);
   info_2.geo_targets = {"US"};
   info_2.target_url = "https://brave.com/2";

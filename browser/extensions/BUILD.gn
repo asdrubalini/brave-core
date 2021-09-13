@@ -1,5 +1,6 @@
 import("//brave/browser/ethereum_remote_client/buildflags/buildflags.gni")
 import("//brave/components/binance/browser/buildflags/buildflags.gni")
+import("//brave/components/brave_adaptive_captcha/buildflags/buildflags.gni")
 import("//brave/components/brave_wallet/browser/config.gni")
 import("//brave/components/brave_wayback_machine/buildflags/buildflags.gni")
 import("//brave/components/brave_webtorrent/browser/buildflags/buildflags.gni")
@@ -74,6 +75,7 @@ source_set("extensions") {
     "//brave/components/brave_shields/common",
     "//brave/components/brave_talk",
     "//brave/components/brave_today/browser",
+    "//brave/components/brave_vpn/buildflags",
     "//brave/components/brave_wayback_machine:buildflags",
     "//brave/components/decentralized_dns/buildflags",
     "//brave/components/ipfs/buildflags",
@@ -203,6 +205,10 @@ source_set("extensions") {
       "//extensions/browser",
       "//extensions/common:common_constants",
     ]
+  }
+
+  if (brave_adaptive_captcha_enabled) {
+    deps += [ "//brave/components/brave_adaptive_captcha" ]
   }
 }
 

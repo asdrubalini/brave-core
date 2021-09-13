@@ -5,8 +5,11 @@
 
 #include "bat/ads/internal/database/tables/geo_targets_database_table.h"
 
+#include <algorithm>
+#include <functional>
 #include <utility>
 
+#include "base/check.h"
 #include "base/strings/stringprintf.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/database/database_statement_util.h"
@@ -60,8 +63,8 @@ void GeoTargets::Migrate(mojom::DBTransaction* transaction,
   DCHECK(transaction);
 
   switch (to_version) {
-    case 15: {
-      MigrateToV15(transaction);
+    case 16: {
+      MigrateToV16(transaction);
       break;
     }
 
@@ -105,7 +108,7 @@ std::string GeoTargets::BuildInsertOrUpdateQuery(
       BuildBindingParameterPlaceholders(2, count).c_str());
 }
 
-void GeoTargets::CreateTableV15(mojom::DBTransaction* transaction) {
+void GeoTargets::CreateTableV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
   const std::string query = base::StringPrintf(
@@ -123,12 +126,12 @@ void GeoTargets::CreateTableV15(mojom::DBTransaction* transaction) {
   transaction->commands.push_back(std::move(command));
 }
 
-void GeoTargets::MigrateToV15(mojom::DBTransaction* transaction) {
+void GeoTargets::MigrateToV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
   util::Drop(transaction, get_table_name());
 
-  CreateTableV15(transaction);
+  CreateTableV16(transaction);
 }
 
 }  // namespace table

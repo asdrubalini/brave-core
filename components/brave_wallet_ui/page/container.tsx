@@ -36,8 +36,9 @@ import {
   ExpirationPresetObjectType,
   ToOrFromType,
   WalletAccountType,
-  Network,
-  TokenInfo
+  TokenInfo,
+  UpdateAccountNamePayloadType,
+  EthereumChain
 } from '../constants/types'
 // import { NavOptions } from '../options/side-nav-options'
 import BuySendSwap from '../stories/screens/buy-send-swap'
@@ -73,6 +74,7 @@ function Container (props: Props) {
     isWalletBackedUp,
     hasIncorrectPassword,
     accounts,
+    networkList,
     transactions,
     selectedNetwork,
     selectedAccount,
@@ -98,12 +100,13 @@ function Container (props: Props) {
     setupStillInProgress,
     isFetchingPriceHistory,
     showIsRestoring,
-    privateKey
+    privateKey,
+    importError,
+    showAddModal
   } = props.page
 
   // const [view, setView] = React.useState<NavTypes>('crypto')
   const [inputValue, setInputValue] = React.useState<string>('')
-  const [showAddModal, setShowAddModal] = React.useState<boolean>(false)
   const [exchangeRate, setExchangeRate] = React.useState('')
   const [toAddress, setToAddress] = React.useState('')
   const [buyAmount, setBuyAmount] = React.useState('')
@@ -178,7 +181,7 @@ function Container (props: Props) {
     props.walletActions.selectAccount(account)
   }
 
-  const onSelectNetwork = (network: Network) => {
+  const onSelectNetwork = (network: EthereumChain) => {
     props.walletActions.selectNetwork(network)
   }
 
@@ -308,9 +311,7 @@ function Container (props: Props) {
     if (selectedAsset) {
       props.walletPageActions.selectAsset({ asset: selectedAsset, timeFrame: timeline })
     } else {
-      if (parseFloat(fullPortfolioBalance) !== 0) {
-        props.walletActions.selectPortfolioTimeline(timeline)
-      }
+      props.walletActions.selectPortfolioTimeline(timeline)
     }
   }
 
@@ -333,17 +334,21 @@ function Container (props: Props) {
   }, [accounts, selectedAccount, fromAsset])
 
   const onSelectPresetFromAmount = (percent: number) => {
+    const asset = userVisibleTokensInfo.find((asset) => asset.symbol === fromAsset.asset.symbol)
     const amount = Number(fromAsset.assetBalance) * percent
-    setSendAmount(amount.toString())
+    const formatedAmmount = formatBalance(amount.toString(), asset?.decimals ?? 18)
+    setFromAmount(formatedAmmount)
   }
 
   const onSelectPresetSendAmount = (percent: number) => {
+    const asset = userVisibleTokensInfo.find((asset) => asset.symbol === fromAsset.asset.symbol)
     const amount = Number(fromAsset.assetBalance) * percent
-    setSendAmount(amount.toString())
+    const formatedAmmount = formatBalance(amount.toString(), asset?.decimals ?? 18)
+    setSendAmount(formatedAmmount)
   }
 
   const onToggleAddModal = () => {
-    setShowAddModal(!showAddModal)
+    props.walletPageActions.setShowAddModal(!showAddModal)
   }
 
   const onCreateAccount = (name: string) => {
@@ -354,7 +359,7 @@ function Container (props: Props) {
   }
 
   const onSubmitBuy = (asset: AccountAssetOptionType) => {
-    const url = BuyAssetUrl(selectedNetwork, asset, selectedAccount, buyAmount)
+    const url = BuyAssetUrl(selectedNetwork.chainId, asset, selectedAccount, buyAmount)
     if (url) {
       window.open(url, '_blank')
     }
@@ -367,18 +372,24 @@ function Container (props: Props) {
   }
 
   const onImportAccount = (accountName: string, privateKey: string) => {
-    const imported = props.walletPageActions.addImportedAccount({ accountName, privateKey })
-    if (imported) {
-      onToggleAddModal()
-    }
+    props.walletPageActions.importAccount({ accountName, privateKey })
+  }
+
+  const onImportAccountFromJson = (accountName: string, password: string, json: string) => {
+    props.walletPageActions.importAccountFromJson({ accountName, password, json })
+  }
+
+  const onSetImportError = (hasError: boolean) => {
+    props.walletPageActions.setImportError(hasError)
   }
 
   const onRemoveAccount = (address: string) => {
     props.walletPageActions.removeImportedAccount({ address })
   }
 
-  const onUpdateAccountName = () => {
-    // TODO (DOUGLAS): Need to add logic to update and Existing Account Name
+  const onUpdateAccountName = (payload: UpdateAccountNamePayloadType): { success: boolean } => {
+    const result = props.walletPageActions.updateAccountName(payload)
+    return result ? { success: true } : { success: false }
   }
 
   const onUpdateVisibleTokens = (visibleTokens: string[]) => {
@@ -406,8 +417,8 @@ function Container (props: Props) {
     props.walletActions.getAllTokensList()
   }
 
-  const onViewPrivateKey = (address: string) => {
-    props.walletPageActions.viewPrivateKey({ address })
+  const onViewPrivateKey = (address: string, isDefault: boolean) => {
+    props.walletPageActions.viewPrivateKey({ address, isDefault })
   }
 
   const onDoneViewingPrivateKey = () => {
@@ -462,6 +473,7 @@ function Container (props: Props) {
                   needsBackup={!isWalletBackedUp}
                   onShowBackup={onShowBackup}
                   accounts={accounts}
+                  networkList={networkList}
                   onChangeTimeline={onChangeTimeline}
                   onSelectAsset={onSelectAsset}
                   portfolioBalance={fullPortfolioBalance}
@@ -492,6 +504,9 @@ function Container (props: Props) {
                   privateKey={privateKey ?? ''}
                   onDoneViewingPrivateKey={onDoneViewingPrivateKey}
                   onViewPrivateKey={onViewPrivateKey}
+                  onImportAccountFromJson={onImportAccountFromJson}
+                  onSetImportError={onSetImportError}
+                  hasImportError={importError}
                 />
               )}
             </>
@@ -500,6 +515,7 @@ function Container (props: Props) {
       )
     }
   }, [
+    importError,
     privateKey,
     fullTokenList,
     isWalletCreated,
@@ -537,6 +553,7 @@ function Container (props: Props) {
         <WalletWidgetStandIn>
           <BuySendSwap
             accounts={accounts}
+            networkList={networkList}
             orderType={orderType}
             swapToAsset={toAsset}
             swapFromAsset={fromAsset}

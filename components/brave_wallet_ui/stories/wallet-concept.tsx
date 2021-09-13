@@ -20,8 +20,8 @@ import {
   SlippagePresetObjectType,
   ExpirationPresetObjectType,
   ToOrFromType,
-  Network,
-  TokenInfo
+  TokenInfo,
+  EthereumChain
 } from '../constants/types'
 import Onboarding from './screens/onboarding'
 import BackupWallet from './screens/backup-wallet'
@@ -45,6 +45,7 @@ import {
   HardwareWalletAccount,
   HardwareWalletConnectOpts
 } from '../components/desktop/popup-modals/add-account-modal/hardware-wallet-connect/types'
+import { mockNetworks } from './mock-data/mock-networks'
 export default {
   title: 'Wallet/Desktop',
   argTypes: {
@@ -66,7 +67,7 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
   const [selectedTimeline, setSelectedTimeline] = React.useState<AssetPriceTimeframe>(AssetPriceTimeframe.OneDay)
   const [selectedAssetPriceHistory, setSelectedAssetPriceHistory] = React.useState<PriceDataObjectType[]>(PriceHistoryMockData.slice(15, 20))
   const [selectedAsset, setSelectedAsset] = React.useState<TokenInfo>()
-  const [selectedNetwork, setSelectedNetwork] = React.useState<Network>(Network.Mainnet)
+  const [selectedNetwork, setSelectedNetwork] = React.useState<EthereumChain>(mockNetworks[0])
   const [selectedAccount, setSelectedAccount] = React.useState<UserAccountType>(mockUserAccounts[0])
   const [showAddModal, setShowAddModal] = React.useState<boolean>(false)
   const [fromAsset, setFromAsset] = React.useState<AccountAssetOptionType>(AccountAssetOptions[0])
@@ -81,6 +82,7 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
   const [fromAmount, setFromAmount] = React.useState('')
   const [toAmount, setToAmount] = React.useState('')
   const [isRestoring, setIsRestoring] = React.useState<boolean>(false)
+  const [importError, setImportError] = React.useState<boolean>(false)
 
   const onToggleRestore = () => {
     setIsRestoring(!isRestoring)
@@ -122,8 +124,8 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
     setInputValue(value)
   }
 
-  const onUpdateAccountName = () => {
-    alert('Will update account name')
+  const onUpdateAccountName = (): { success: boolean } => {
+    return { success: true }
   }
 
   const onShowBackup = () => {
@@ -311,14 +313,18 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
   }
 
   const onImportAccount = (name: string, key: string) => {
-    alert(`Account Name: ${name}, Private Key: ${key}`)
+    // doesnt do anything in storybook
+  }
+
+  const onImportAccountFromJson = (name: string, password: string, json: string) => {
+    // doesnt do anything in storybook
   }
 
   const onToggleAddModal = () => {
     setShowAddModal(!showAddModal)
   }
 
-  const onSelectNetwork = (network: Network) => {
+  const onSelectNetwork = (network: EthereumChain) => {
     setSelectedNetwork(network)
   }
 
@@ -340,7 +346,7 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
   }
 
   const onSubmitBuy = (asset: AccountAssetOptionType) => {
-    const url = BuyAssetUrl(selectedNetwork, asset, selectedAccount, buyAmount)
+    const url = BuyAssetUrl(mockNetworks[0].chainId, asset, selectedAccount, buyAmount)
     if (url) {
       window.open(url, '_blank')
     }
@@ -454,6 +460,10 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
     // Doesnt do anything in storybook
   }
 
+  const onSetImportError = (hasError: boolean) => {
+    setImportError(hasError)
+  }
+
   return (
     <WalletPageLayout>
       {/* <SideNav
@@ -535,6 +545,10 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
                               privateKey='gf65a4g6a54fg6a54fg6ad4fa5df65a4d6ff54a6sdf'
                               onDoneViewingPrivateKey={onDoneViewingPrivateKey}
                               onViewPrivateKey={onViewPrivateKey}
+                              networkList={mockNetworks}
+                              onImportAccountFromJson={onImportAccountFromJson}
+                              hasImportError={importError}
+                              onSetImportError={onSetImportError}
                             />
                           )}
                         </>
@@ -591,6 +605,7 @@ export const _DesktopWalletConcept = (args: { onboarding: boolean, locked: boole
             buyAssetOptions={WyreAccountAssetOptions}
             sendAssetOptions={AccountAssetOptions}
             swapAssetOptions={AccountAssetOptions}
+            networkList={mockNetworks}
           />
         </WalletWidgetStandIn>
       }

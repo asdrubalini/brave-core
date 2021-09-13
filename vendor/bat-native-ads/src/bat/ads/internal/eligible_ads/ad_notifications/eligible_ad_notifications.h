@@ -6,14 +6,16 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_ELIGIBLE_ADS_AD_NOTIFICATIONS_ELIGIBLE_AD_NOTIFICATIONS_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_ELIGIBLE_ADS_AD_NOTIFICATIONS_ELIGIBLE_AD_NOTIFICATIONS_H_
 
+#include <functional>
+
 #include "bat/ads/internal/ad_events/ad_event_info.h"
-#include "bat/ads/internal/ad_targeting/ad_targeting_segment.h"
 #include "bat/ads/internal/bundle/creative_ad_notification_info.h"
 #include "bat/ads/internal/frequency_capping/frequency_capping_aliases.h"
 
 namespace ads {
 
 namespace ad_targeting {
+struct UserModelInfo;
 namespace geographic {
 class SubdivisionTargeting;
 }  // namespace geographic
@@ -38,8 +40,8 @@ class EligibleAds {
 
   void SetLastServedAd(const CreativeAdInfo& creative_ad);
 
-  void GetForSegments(const SegmentList& segments,
-                      GetEligibleAdsCallback callback);
+  void Get(const ad_targeting::UserModelInfo& user_model,
+           GetEligibleAdsCallback callback);
 
  private:
   ad_targeting::geographic::SubdivisionTargeting*
@@ -49,12 +51,12 @@ class EligibleAds {
 
   CreativeAdInfo last_served_creative_ad_;
 
-  void GetForParentChildSegments(const SegmentList& segments,
+  void GetForParentChildSegments(const ad_targeting::UserModelInfo& user_model,
                                  const AdEventList& ad_events,
                                  const BrowsingHistoryList& browsing_history,
                                  GetEligibleAdsCallback callback) const;
 
-  void GetForParentSegments(const SegmentList& segments,
+  void GetForParentSegments(const ad_targeting::UserModelInfo& user_model,
                             const AdEventList& ad_events,
                             const BrowsingHistoryList& browsing_history,
                             GetEligibleAdsCallback callback) const;

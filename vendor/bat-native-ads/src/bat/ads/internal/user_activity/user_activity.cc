@@ -5,15 +5,16 @@
 
 #include "bat/ads/internal/user_activity/user_activity.h"
 
-#include <cstdint>
 #include <string>
 
+#include "base/check_op.h"
 #include "base/strings/string_number_conversions.h"
 #include "bat/ads/internal/features/user_activity/user_activity_features.h"
 #include "bat/ads/internal/logging.h"
 #include "bat/ads/internal/user_activity/page_transition_util.h"
 #include "bat/ads/internal/user_activity/user_activity_scoring.h"
 #include "bat/ads/internal/user_activity/user_activity_util.h"
+#include "third_party/abseil-cpp/absl/types/optional.h"
 
 namespace ads {
 

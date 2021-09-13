@@ -24,6 +24,7 @@
 #include "bat/ads/internal/database/tables/creative_inline_content_ads_database_table.h"
 #include "bat/ads/internal/database/tables/creative_new_tab_page_ads_database_table.h"
 #include "bat/ads/internal/database/tables/creative_promoted_content_ads_database_table.h"
+#include "bat/ads/internal/database/tables/dayparts_database_table.h"
 #include "bat/ads/internal/database/tables/geo_targets_database_table.h"
 #include "bat/ads/internal/database/tables/segments_database_table.h"
 #include "bat/ads/internal/logging.h"
@@ -159,6 +160,7 @@ BundleState Bundle::FromCatalog(const Catalog& catalog) const {
         info.per_week = creative_set.per_week;
         info.per_month = creative_set.per_month;
         info.total_max = creative_set.total_max;
+        info.value = creative_set.value;
         info.split_test_group = creative_set.split_test_group;
         info.dayparts = creative_dayparts;
         info.geo_targets = geo_targets;
@@ -243,6 +245,7 @@ BundleState Bundle::FromCatalog(const Catalog& catalog) const {
         info.per_week = creative_set.per_week;
         info.per_month = creative_set.per_month;
         info.total_max = creative_set.total_max;
+        info.value = creative_set.value;
         info.split_test_group = creative_set.split_test_group;
         info.dayparts = creative_dayparts;
         info.geo_targets = geo_targets;
@@ -330,6 +333,7 @@ BundleState Bundle::FromCatalog(const Catalog& catalog) const {
         info.per_week = creative_set.per_week;
         info.per_month = creative_set.per_month;
         info.total_max = creative_set.total_max;
+        info.value = creative_set.value;
         info.split_test_group = creative_set.split_test_group;
         info.dayparts = creative_dayparts;
         info.geo_targets = geo_targets;
@@ -414,6 +418,7 @@ BundleState Bundle::FromCatalog(const Catalog& catalog) const {
         info.per_week = creative_set.per_week;
         info.per_month = creative_set.per_month;
         info.total_max = creative_set.total_max;
+        info.value = creative_set.value;
         info.split_test_group = creative_set.split_test_group;
         info.dayparts = creative_dayparts;
         info.geo_targets = geo_targets;

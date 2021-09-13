@@ -23,9 +23,6 @@
 #include "bat/ads/internal/ads/new_tab_page_ads/new_tab_page_ad_observer.h"
 #include "bat/ads/internal/ads/promoted_content_ads/promoted_content_ad_observer.h"
 #include "bat/ads/internal/conversions/conversions_observer.h"
-#include "bat/ads/internal/privacy/tokens/token_generator.h"
-#include "bat/ads/internal/privacy/tokens/token_generator_interface.h"
-#include "bat/ads/internal/resources/frequency_capping/anti_targeting_info.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
@@ -64,22 +61,26 @@ namespace database {
 class Initialize;
 }  // namespace database
 
+namespace privacy {
+class TokenGenerator;
+class TokenGeneratorInterface;
+}  // namespace privacy
+
 class Account;
 class AdDiagnostics;
 class AdNotification;
 class AdNotificationServing;
 class AdNotifications;
 class AdServer;
-class AdTargeting;
 class AdTransfer;
 class AdsClientHelper;
-class InlineContentAd;
-class InlineContentAdServing;
 class BrowserManager;
 class Catalog;
 class Client;
 class ConfirmationsState;
 class Conversions;
+class InlineContentAd;
+class InlineContentAdServing;
 class NewTabPageAd;
 class PromotedContentAd;
 class TabManager;
@@ -87,6 +88,7 @@ class UserActivity;
 struct AdInfo;
 struct AdNotificationInfo;
 struct AdsHistoryInfo;
+struct ConversionQueueItemInfo;
 struct InlineContentAdInfo;
 struct NewTabPageAdInfo;
 struct PromotedContentAdInfo;
@@ -235,7 +237,6 @@ class AdsImpl : public Ads,
   std::unique_ptr<resource::Conversions> conversions_resource_;
   std::unique_ptr<ad_targeting::geographic::SubdivisionTargeting>
       subdivision_targeting_;
-  std::unique_ptr<AdTargeting> ad_targeting_;
   std::unique_ptr<ad_notifications::AdServing> ad_notification_serving_;
   std::unique_ptr<AdNotification> ad_notification_;
   std::unique_ptr<AdNotifications> ad_notifications_;

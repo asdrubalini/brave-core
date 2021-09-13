@@ -9,6 +9,8 @@
 
 #include "base/guid.h"
 #include "bat/ads/internal/ad_serving/ad_targeting/geographic/subdivision/subdivision_targeting.h"
+#include "bat/ads/internal/ad_targeting/ad_targeting_user_model_builder_unittest_util.h"
+#include "bat/ads/internal/ad_targeting/ad_targeting_user_model_info.h"
 #include "bat/ads/internal/database/tables/creative_inline_content_ads_database_table.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting_resource.h"
 #include "bat/ads/internal/unittest_base.h"
@@ -48,6 +50,7 @@ class BatAdsEligibleInlineContentAdsTest : public UnitTestBase {
     creative_inline_content_ad.per_week = 1;
     creative_inline_content_ad.per_month = 1;
     creative_inline_content_ad.total_max = 1;
+    creative_inline_content_ad.value = 1.0;
     creative_inline_content_ad.segment = segment;
     creative_inline_content_ad.geo_targets = {"US"};
     creative_inline_content_ad.target_url = "https://brave.com";
@@ -93,8 +96,9 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetAdsForParentChildSegment) {
   const CreativeInlineContentAdList expected_creative_inline_content_ads = {
       creative_inline_content_ad_2};
 
-  eligible_ads.GetForSegments(
-      {"technology & computing-software"}, "200x100",
+  eligible_ads.Get(
+      ad_targeting::BuildUserModel({"technology & computing-software"}),
+      "200x100",
       [&expected_creative_inline_content_ads](
           const bool success,
           const CreativeInlineContentAdList& creative_inline_content_ads) {
@@ -124,8 +128,9 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetAdsForParentSegment) {
   const CreativeInlineContentAdList expected_creative_inline_content_ads = {
       creative_inline_content_ad};
 
-  eligible_ads.GetForSegments(
-      {"technology & computing-software"}, "200x100",
+  eligible_ads.Get(
+      ad_targeting::BuildUserModel({"technology & computing-software"}),
+      "200x100",
       [&expected_creative_inline_content_ads](
           const bool success,
           const CreativeInlineContentAdList& creative_inline_content_ads) {
@@ -155,8 +160,8 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetAdsForUntargetedSegment) {
   const CreativeInlineContentAdList expected_creative_inline_content_ads = {
       creative_inline_content_ad};
 
-  eligible_ads.GetForSegments(
-      {"finance-banking"}, "200x100",
+  eligible_ads.Get(
+      ad_targeting::BuildUserModel({"finance-banking"}), "200x100",
       [&expected_creative_inline_content_ads](
           const bool success,
           const CreativeInlineContentAdList& creative_inline_content_ads) {
@@ -194,8 +199,9 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetAdsForMultipleSegments) {
   const CreativeInlineContentAdList expected_creative_inline_content_ads = {
       creative_inline_content_ad_1, creative_inline_content_ad_2};
 
-  eligible_ads.GetForSegments(
-      {"technology & computing", "food & drink"}, "200x100",
+  eligible_ads.Get(
+      ad_targeting::BuildUserModel({"technology & computing", "food & drink"}),
+      "200x100",
       [&expected_creative_inline_content_ads](
           const bool success,
           const CreativeInlineContentAdList& creative_inline_content_ads) {
@@ -225,7 +231,7 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetAdsForUntargetedForNoSegments) {
   const CreativeInlineContentAdList expected_creative_inline_content_ads = {
       creative_inline_content_ad};
 
-  eligible_ads.GetForSegments(
+  eligible_ads.Get(
       {}, "200x100",
       [&expected_creative_inline_content_ads](
           const bool success,
@@ -255,8 +261,8 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetAdsForUnmatchedSegments) {
 
   const CreativeInlineContentAdList expected_creative_inline_content_ads = {};
 
-  eligible_ads.GetForSegments(
-      {"UNMATCHED"}, "200x100",
+  eligible_ads.Get(
+      ad_targeting::BuildUserModel({"UNMATCHED"}), "200x100",
       [&expected_creative_inline_content_ads](
           const bool success,
           const CreativeInlineContentAdList& creative_inline_content_ads) {
@@ -285,8 +291,8 @@ TEST_F(BatAdsEligibleInlineContentAdsTest, GetAdsForUnmatchedDimensions) {
 
   const CreativeInlineContentAdList expected_creative_inline_content_ads = {};
 
-  eligible_ads.GetForSegments(
-      {"technology & computing"}, "?x?",
+  eligible_ads.Get(
+      ad_targeting::BuildUserModel({"technology & computing"}), "?x?",
       [&expected_creative_inline_content_ads](
           const bool success,
           const CreativeInlineContentAdList& creative_inline_content_ads) {

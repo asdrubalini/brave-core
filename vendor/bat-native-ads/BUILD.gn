@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import("//brave/vendor/bat-native-ledger/config.gni")
+
 if (is_android) {
   import("//build/config/android/rules.gni")
 }
@@ -222,11 +224,10 @@ source_set("ads") {
     "src/bat/ads/internal/ad_serving/inline_content_ads/inline_content_ad_serving_observer.h",
     "src/bat/ads/internal/ad_targeting/ad_targeting.cc",
     "src/bat/ads/internal/ad_targeting/ad_targeting.h",
-    "src/bat/ads/internal/ad_targeting/ad_targeting_segment.cc",
-    "src/bat/ads/internal/ad_targeting/ad_targeting_segment.h",
-    "src/bat/ads/internal/ad_targeting/ad_targeting_segment_util.cc",
-    "src/bat/ads/internal/ad_targeting/ad_targeting_segment_util.h",
-    "src/bat/ads/internal/ad_targeting/ad_targeting_values.h",
+    "src/bat/ads/internal/ad_targeting/ad_targeting_user_model_builder.cc",
+    "src/bat/ads/internal/ad_targeting/ad_targeting_user_model_builder.h",
+    "src/bat/ads/internal/ad_targeting/ad_targeting_user_model_info.cc",
+    "src/bat/ads/internal/ad_targeting/ad_targeting_user_model_info.h",
     "src/bat/ads/internal/ad_targeting/data_types/behavioral/bandits/epsilon_greedy_bandit_arm_info.cc",
     "src/bat/ads/internal/ad_targeting/data_types/behavioral/bandits/epsilon_greedy_bandit_arm_info.h",
     "src/bat/ads/internal/ad_targeting/data_types/behavioral/bandits/epsilon_greedy_bandit_arms.cc",
@@ -450,6 +451,7 @@ source_set("ads") {
     "src/bat/ads/internal/database/tables/segments_database_table.h",
     "src/bat/ads/internal/eligible_ads/ad_notifications/eligible_ad_notifications.cc",
     "src/bat/ads/internal/eligible_ads/ad_notifications/eligible_ad_notifications.h",
+    "src/bat/ads/internal/eligible_ads/eligible_ads_constants.h",
     "src/bat/ads/internal/eligible_ads/inline_content_ads/eligible_inline_content_ads.cc",
     "src/bat/ads/internal/eligible_ads/inline_content_ads/eligible_inline_content_ads.h",
     "src/bat/ads/internal/eligible_ads/round_robin_ads.h",
@@ -666,14 +668,19 @@ source_set("ads") {
     "src/bat/ads/internal/security/crypto_util.h",
     "src/bat/ads/internal/security/key_pair_info.cc",
     "src/bat/ads/internal/security/key_pair_info.h",
+    "src/bat/ads/internal/segments/segments_alias.h",
+    "src/bat/ads/internal/segments/segments_json_reader.cc",
+    "src/bat/ads/internal/segments/segments_json_reader.h",
+    "src/bat/ads/internal/segments/segments_json_writer.cc",
+    "src/bat/ads/internal/segments/segments_json_writer.h",
+    "src/bat/ads/internal/segments/segments_util.cc",
+    "src/bat/ads/internal/segments/segments_util.h",
     "src/bat/ads/internal/server/ads_serve_server_util.cc",
     "src/bat/ads/internal/server/ads_serve_server_util.h",
     "src/bat/ads/internal/server/ads_server_util.cc",
     "src/bat/ads/internal/server/ads_server_util.h",
     "src/bat/ads/internal/server/confirmations_server_util.cc",
     "src/bat/ads/internal/server/confirmations_server_util.h",
-    "src/bat/ads/internal/server/rewards_server_util.cc",
-    "src/bat/ads/internal/server/rewards_server_util.h",
     "src/bat/ads/internal/server/url_request_builder.h",
     "src/bat/ads/internal/server/via_header_util.cc",
     "src/bat/ads/internal/server/via_header_util.h",
@@ -786,9 +793,11 @@ source_set("ads") {
   deps = [
     "//base",
     "//brave/common",
+    "//brave/components/brave_adaptive_captcha/buildflags",
     "//brave/components/challenge_bypass_ristretto",
     "//brave/components/l10n/browser",
     "//brave/components/l10n/common",
+    "//brave/vendor/bat-native-ledger",
     "//crypto",
     "//net",
     "//sql",

@@ -163,6 +163,7 @@ const locale = {
   importAccountFile: 'JSON File',
   importAccountUploadButton: 'Choose File',
   importAccountUploadPlaceholder: 'No file chosen',
+  importAccountError: 'Failed to import account, please try again.',
 
   // Connect Hardware Wallet
   connectHardwareTitle: 'Select your hardware wallet device',
@@ -187,6 +188,10 @@ const locale = {
   accountSettingsRemove: 'Remove Account',
   watchlistButton: 'Save Account Watchlist',
   watchListSearchPlaceholder: 'Search tokens or contract address',
+  accountSettingsDisclaimer: 'Warning: Never disclose this key. Anyone with your private key can steal any assets held in your account.',
+  accountSettingsShowKey: 'Show Key',
+  accountSettingsHideKey: 'Hide Key',
+  accountSettingsUpdateError: 'Failed to update account name, please try again.',
 
   // AmountPresets
   preset25: '25%',
@@ -214,7 +219,7 @@ const locale = {
   searchAsset: 'Search Coins',
 
   // Swap
-  swapFrom: 'From',
+  swapFrom: 'Amount',
   swapTo: 'To',
   swapEstimate: 'estimate',
   swapMarket: 'Market',
@@ -251,12 +256,16 @@ const locale = {
   allowAddNetworkUrl: 'Network URL',
   allowAddNetworkDetailsButton: 'View all details',
   allowAddNetworkApproveButton: 'Approve',
+  allowAddNetworkChainID: 'Chain ID',
+  allowAddNetworkCurrencySymbol: 'Currency Symbol',
+  allowAddNetworkExplorer: 'Block Explorer URL',
 
   // Confirm Transaction Panel
   confirmTransactionTotal: 'Total',
   confirmTransactionGasFee: 'Gas Fee',
   confrimTransactionBid: 'Bid',
   confirmTransactionAmountGas: 'Amount + Gas',
+  confirmTransactionNoData: 'No Data.',
 
   // Wallet Main Panel
   panelTitle: 'Crypto',

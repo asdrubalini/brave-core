@@ -17,9 +17,15 @@ export type AddAccountPayloadType = {
   accountName: string
 }
 
-export type AddImportedAccountPayloadType = {
+export type ImportAccountPayloadType = {
   accountName: string,
   privateKey: string
+}
+
+export type ImportAccountFromJsonPayloadType = {
+  accountName: string,
+  password: string,
+  json: string
 }
 
 export type RemoveImportedAccountPayloadType = {
@@ -36,6 +42,7 @@ export type WalletCreatedPayloadType = {
 }
 
 export type ViewPrivateKeyPayloadType = {
+  isDefault: boolean
   address: string
 }
 

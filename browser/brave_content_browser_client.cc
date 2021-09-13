@@ -18,6 +18,7 @@
 #include "brave/browser/brave_browser_main_extra_parts.h"
 #include "brave/browser/brave_browser_process.h"
 #include "brave/browser/brave_shields/brave_shields_web_contents_observer.h"
+#include "brave/browser/debounce/debounce_service_factory.h"
 #include "brave/browser/ethereum_remote_client/buildflags/buildflags.h"
 #include "brave/browser/net/brave_proxying_url_loader_factory.h"
 #include "brave/browser/net/brave_proxying_web_socket.h"
@@ -43,11 +44,13 @@
 #include "brave/components/brave_webtorrent/browser/buildflags/buildflags.h"
 #include "brave/components/cosmetic_filters/browser/cosmetic_filters_resources.h"
 #include "brave/components/cosmetic_filters/common/cosmetic_filters.mojom.h"
+#include "brave/components/debounce/browser/debounce_throttle.h"
 #include "brave/components/decentralized_dns/buildflags/buildflags.h"
 #include "brave/components/ftx/browser/buildflags/buildflags.h"
 #include "brave/components/gemini/browser/buildflags/buildflags.h"
 #include "brave/components/ipfs/buildflags/buildflags.h"
 #include "brave/components/speedreader/buildflags.h"
+#include "brave/components/speedreader/speedreader_util.h"
 #include "brave/components/tor/buildflags/buildflags.h"
 #include "brave/grit/brave_generated_resources.h"
 #include "chrome/browser/browser_process.h"
@@ -62,6 +65,7 @@
 #include "components/content_settings/core/browser/host_content_settings_map.h"
 #include "components/prefs/pref_service.h"
 #include "components/services/heap_profiling/public/mojom/heap_profiling_client.mojom.h"
+#include "components/user_prefs/user_prefs.h"
 #include "components/version_info/version_info.h"
 #include "content/browser/renderer_host/render_frame_host_impl.h"
 #include "content/browser/service_worker/service_worker_host.h"
@@ -110,7 +114,6 @@ using extensions::ChromeContentBrowserClientExtensionsPart;
 #include "brave/browser/ipfs/ipfs_service_factory.h"
 #include "brave/components/ipfs/ipfs_constants.h"
 #include "brave/components/ipfs/ipfs_navigation_throttle.h"
-#include "components/user_prefs/user_prefs.h"
 #endif
 
 #if BUILDFLAG(DECENTRALIZED_DNS_ENABLED)
@@ -233,7 +236,8 @@ void MaybeBindBraveWalletProvider(
 #else
           std::make_unique<brave_wallet::BraveWalletProviderDelegateImpl>(
 #endif
-              web_contents, frame_host)),
+              web_contents, frame_host),
+          user_prefs::UserPrefs::Get(web_contents->GetBrowserContext())),
       std::move(receiver));
 }
 #endif
@@ -388,13 +392,13 @@ void BraveContentBrowserClient::RegisterBrowserInterfaceBindersForFrame(
       brave_wallet::mojom::PanelHandlerFactory, WalletPanelUI>(map);
   chrome::internal::RegisterWebUIControllerInterfaceBinder<
       brave_wallet::mojom::PageHandlerFactory, WalletPageUI>(map);
+#endif
+#endif
 #if BUILDFLAG(ENABLE_BRAVE_VPN) && !defined(OS_ANDROID)
   if (brave_vpn::IsBraveVPNEnabled()) {
     chrome::internal::RegisterWebUIControllerInterfaceBinder<
         brave_vpn::mojom::PanelHandlerFactory, VPNPanelUI>(map);
   }
-#endif
-#endif
 #endif
 }
 
@@ -492,14 +496,14 @@ std::vector<std::unique_ptr<blink::URLLoaderThrottle>>
 BraveContentBrowserClient::CreateURLLoaderThrottles(
     const network::ResourceRequest& request,
     content::BrowserContext* browser_context,
-    const base::RepeatingCallback<content::WebContents*()>& wc_getter,
+    const content::WebContents::Getter& wc_getter,
     content::NavigationUIData* navigation_ui_data,
     int frame_tree_node_id) {
   auto result = ChromeContentBrowserClient::CreateURLLoaderThrottles(
       request, browser_context, wc_getter, navigation_ui_data,
       frame_tree_node_id);
 #if BUILDFLAG(ENABLE_SPEEDREADER)
-  using DistillState = speedreader::SpeedreaderTabHelper::DistillState;
+  using DistillState = speedreader::DistillState;
   content::WebContents* contents = wc_getter.Run();
   if (!contents) {
     return result;
@@ -508,21 +512,34 @@ BraveContentBrowserClient::CreateURLLoaderThrottles(
       speedreader::SpeedreaderTabHelper::FromWebContents(contents);
   if (tab_helper) {
     const auto state = tab_helper->PageDistillState();
-    if (speedreader::SpeedreaderTabHelper::PageStateIsDistilled(state) &&
+    if (speedreader::PageWantsDistill(state) &&
         request.resource_type ==
             static_cast<int>(blink::mojom::ResourceType::kMainFrame)) {
+      // Only check for disabled sites if we are in Speedreader mode
+      const bool check_disabled_sites =
+          state == DistillState::kSpeedreaderModePending;
       std::unique_ptr<speedreader::SpeedReaderThrottle> throttle =
           speedreader::SpeedReaderThrottle::MaybeCreateThrottleFor(
               g_brave_browser_process->speedreader_rewriter_service(),
               HostContentSettingsMapFactory::GetForProfile(
                   Profile::FromBrowserContext(browser_context)),
-              request.url, state == DistillState::kSpeedreaderMode,
+              tab_helper->GetWeakPtr(), request.url, check_disabled_sites,
               base::ThreadTaskRunnerHandle::Get());
       if (throttle)
         result.push_back(std::move(throttle));
     }
   }
 #endif  // ENABLE_SPEEDREADER
+
+  auto* settings_map = HostContentSettingsMapFactory::GetForProfile(
+      Profile::FromBrowserContext(browser_context));
+  if (std::unique_ptr<blink::URLLoaderThrottle> debounce_throttle =
+          debounce::DebounceThrottle::MaybeCreateThrottleFor(
+              debounce::DebounceServiceFactory::GetForBrowserContext(
+                  browser_context),
+              settings_map))
+    result.push_back(std::move(debounce_throttle));
+
   return result;
 }
 

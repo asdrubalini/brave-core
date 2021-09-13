@@ -6,19 +6,15 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CREATIVE_PROMOTED_CONTENT_ADS_DATABASE_TABLE_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CREATIVE_PROMOTED_CONTENT_ADS_DATABASE_TABLE_H_
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "bat/ads/ads_client.h"
-#include "bat/ads/internal/ad_targeting/ad_targeting.h"
 #include "bat/ads/internal/bundle/creative_promoted_content_ad_info.h"
 #include "bat/ads/internal/database/database_table.h"
-#include "bat/ads/internal/database/tables/campaigns_database_table.h"
-#include "bat/ads/internal/database/tables/creative_ads_database_table.h"
-#include "bat/ads/internal/database/tables/dayparts_database_table.h"
-#include "bat/ads/internal/database/tables/geo_targets_database_table.h"
-#include "bat/ads/internal/database/tables/segments_database_table.h"
+#include "bat/ads/internal/segments/segments_alias.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
@@ -35,6 +31,12 @@ using GetCreativePromotedContentAdsCallback =
 
 namespace database {
 namespace table {
+
+class Campaigns;
+class CreativeAds;
+class Dayparts;
+class GeoTargets;
+class Segments;
 
 class CreativePromotedContentAds : public Table {
  public:
@@ -89,8 +91,8 @@ class CreativePromotedContentAds : public Table {
 
   CreativePromotedContentAdInfo GetFromRecord(mojom::DBRecord* record) const;
 
-  void CreateTableV15(mojom::DBTransaction* transaction);
-  void MigrateToV15(mojom::DBTransaction* transaction);
+  void CreateTableV16(mojom::DBTransaction* transaction);
+  void MigrateToV16(mojom::DBTransaction* transaction);
 
   int batch_size_;
 
