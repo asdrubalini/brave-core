@@ -13,7 +13,8 @@ import {
   WelcomePanel,
   SignPanel,
   AllowAddNetworkPanel,
-  ConfirmTransactionPanel
+  ConfirmTransactionPanel,
+  ConnectHardwareWalletPanel
 } from '../components/extension'
 import {
   Send,
@@ -54,7 +55,7 @@ import { WyreAccountAssetOptions } from '../options/wyre-asset-options'
 import { BuyAssetUrl } from '../utils/buy-asset-url'
 import { GetNetworkInfo } from '../utils/network-utils'
 
-import { formatBalance, toWei } from '../utils/format-balances'
+import { formatBalance, toWeiHex } from '../utils/format-balances'
 
 type Props = {
   panel: PanelState
@@ -97,7 +98,6 @@ function Container (props: Props) {
     connectedSiteOrigin,
     panelTitle,
     selectedPanel,
-    showSignTransaction,
     networkPayload
   } = props.panel
 
@@ -172,15 +172,17 @@ function Container (props: Props) {
   }
 
   const onSubmitSend = () => {
-    const asset = userVisibleTokensInfo.find((asset) => asset.symbol === selectedAsset.asset.symbol)
-    // TODO: Use real gas price & limit
-    props.walletActions.sendTransaction({
+    selectedAsset.asset.isErc20 && props.walletActions.sendERC20Transfer({
       from: selectedAccount.address,
       to: toAddress,
-      value: toWei(sendAmount, asset?.decimals ?? 0),
-      contractAddress: asset?.contractAddress ?? '',
-      gasPrice: '0x20000000000',
-      gasLimit: '0xFDE8'
+      value: toWeiHex(sendAmount, selectedAsset.asset.decimals),
+      contractAddress: selectedAsset.asset.contractAddress
+    })
+
+    !selectedAsset.asset.isErc20 && props.walletActions.sendTransaction({
+      from: selectedAccount.address,
+      to: toAddress,
+      value: toWeiHex(sendAmount, selectedAsset.asset.decimals)
     })
   }
 
@@ -241,7 +243,7 @@ function Container (props: Props) {
     }
   }
   const onRestore = () => {
-    props.walletPanelActions.restoreWallet()
+    props.walletPanelActions.expandRestoreWallet()
   }
   const onSetup = () => {
     props.walletPanelActions.setupWallet()
@@ -288,7 +290,7 @@ function Container (props: Props) {
     // Logic here to cancel signing
   }
 
-  const onSignTransaction = () => {
+  const onSignData = () => {
     // Logic here to sign a transaction
   }
 
@@ -322,6 +324,10 @@ function Container (props: Props) {
     props.walletPanelActions.openWalletSettings()
   }
 
+  const onCancelConnectHardwareWallet = () => {
+    // Logic here to cancel connecting your hardware wallet
+  }
+
   if (!hasInitialized || !accounts) {
     return null
   }
@@ -345,6 +351,7 @@ function Container (props: Props) {
             onSubmit={unlockWallet}
             disabled={inputValue === ''}
             onPasswordChanged={handlePasswordChanged}
+            onClickRestore={onRestore}
           />
         </StyledExtensionWrapper>
       </PanelWrapper>
@@ -369,6 +376,22 @@ function Container (props: Props) {
     )
   }
 
+  if (selectedPanel === 'connectHardwareWallet') {
+    return (
+      <PanelWrapper isLonger={false}>
+        <StyledExtensionWrapper>
+          <ConnectHardwareWalletPanel
+            onCancel={onCancelConnectHardwareWallet}
+            isConnected={false}
+            walletName='Ledger 1'
+            // Pass a boolean true here to show needs Transaction Confirmation state
+            requestingConfirmation={false}
+          />
+        </StyledExtensionWrapper>
+      </PanelWrapper>
+    )
+  }
+
   if (selectedPanel === 'addEthereumChain') {
     return (
       <PanelWrapper isLonger={true}>
@@ -384,16 +407,18 @@ function Container (props: Props) {
     )
   }
 
-  if (showSignTransaction) {
+  if (selectedPanel === 'signData') {
     return (
       <PanelWrapper isLonger={true}>
         <SignContainer>
           <SignPanel
             message='Pass Sign Transaction Message Here'
             onCancel={onCancelSigning}
-            onSign={onSignTransaction}
+            onSign={onSignData}
             selectedAccount={selectedAccount}
             selectedNetwork={GetNetworkInfo(selectedNetwork.chainId, networkList)}
+            // Pass a boolean here if the signing method is risky
+            showWarning={true}
           />
         </SignContainer>
       </PanelWrapper>
@@ -541,6 +566,7 @@ function Container (props: Props) {
                 selectedAsset={selectedWyreAsset}
                 buyAmount={buyAmount}
                 selectedNetwork={GetNetworkInfo(selectedNetwork.chainId, networkList)}
+                networkList={networkList}
               />
             </SendWrapper>
           </Panel>

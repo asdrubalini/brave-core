@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "base/observer_list.h"
 #include "bat/ads/internal/ads/new_tab_page_ads/new_tab_page_ad_observer.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
@@ -15,10 +16,9 @@ namespace ads {
 
 struct NewTabPageAdInfo;
 
-class NewTabPageAd : public NewTabPageAdObserver {
+class NewTabPageAd final : public NewTabPageAdObserver {
  public:
   NewTabPageAd();
-
   ~NewTabPageAd() override;
 
   void AddObserver(NewTabPageAdObserver* observer);

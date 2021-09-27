@@ -256,6 +256,7 @@ source_set("ui") {
     "//brave/components/brave_rewards/resources:internals_generated_resources",
     "//brave/components/brave_rewards/resources:page_generated_resources",
     "//brave/components/brave_rewards/resources:tip_generated_resources",
+    "//brave/components/brave_search/common",
     "//brave/components/brave_shields/browser",
     "//brave/components/brave_vpn/buildflags",
     "//brave/components/brave_wallet/common/buildflags",
@@ -292,6 +293,7 @@ source_set("ui") {
     "//content/public/common",
     "//services/network/public/cpp",
     "//skia",
+    "//third_party/abseil-cpp:absl",
     "//ui/accessibility",
     "//ui/base",
     "//ui/gfx",
@@ -300,7 +302,10 @@ source_set("ui") {
   ]
 
   if (toolkit_views) {
-    deps += [ "//brave/browser/ui/views/brave_ads" ]
+    deps += [
+      "//brave/browser/ui/views/brave_ads",
+      "//brave/browser/ui/views/brave_tooltips",
+    ]
   }
 
   # This is no longer compiled into Chromium on Android, but we still
@@ -534,6 +539,8 @@ source_set("ui") {
       "wallet_bubble_manager_delegate_impl.h",
       "webui/brave_wallet/page_handler/wallet_page_handler.cc",
       "webui/brave_wallet/page_handler/wallet_page_handler.h",
+      "webui/brave_wallet/wallet_common_ui.cc",
+      "webui/brave_wallet/wallet_common_ui.h",
       "webui/brave_wallet/wallet_page_ui.cc",
       "webui/brave_wallet/wallet_page_ui.h",
       "webui/brave_wallet/wallet_panel_ui.cc",

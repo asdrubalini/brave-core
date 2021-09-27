@@ -13,10 +13,10 @@
 
 namespace ads {
 
-class MarkedAsInappropriateFrequencyCap : public ExclusionRule<CreativeAdInfo> {
+class MarkedAsInappropriateFrequencyCap final
+    : public ExclusionRule<CreativeAdInfo> {
  public:
   MarkedAsInappropriateFrequencyCap();
-
   ~MarkedAsInappropriateFrequencyCap() override;
 
   MarkedAsInappropriateFrequencyCap(const MarkedAsInappropriateFrequencyCap&) =
@@ -26,7 +26,7 @@ class MarkedAsInappropriateFrequencyCap : public ExclusionRule<CreativeAdInfo> {
 
   bool ShouldExclude(const CreativeAdInfo& ad) override;
 
-  std::string get_last_message() const override;
+  std::string GetLastMessage() const override;
 
  private:
   std::string last_message_;

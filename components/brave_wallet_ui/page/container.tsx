@@ -6,7 +6,7 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
 import { bindActionCreators, Dispatch } from 'redux'
-
+import { Switch, Route, useHistory, useLocation } from 'react-router-dom'
 import * as WalletPageActions from './actions/wallet_page_actions'
 import * as WalletActions from '../common/actions/wallet_actions'
 import store from './store'
@@ -38,7 +38,9 @@ import {
   WalletAccountType,
   TokenInfo,
   UpdateAccountNamePayloadType,
-  EthereumChain
+  EthereumChain,
+  WalletRoutes,
+  BuySendSwapTypes
 } from '../constants/types'
 // import { NavOptions } from '../options/side-nav-options'
 import BuySendSwap from '../stories/screens/buy-send-swap'
@@ -52,12 +54,13 @@ import { WyreAccountAssetOptions } from '../options/wyre-asset-options'
 import { SlippagePresetOptions } from '../options/slippage-preset-options'
 import { ExpirationPresetOptions } from '../options/expiration-preset-options'
 import {
-  HardwareWalletAccount,
-  HardwareWalletConnectOpts
+  HardwareWalletAccount
 } from '../components/desktop/popup-modals/add-account-modal/hardware-wallet-connect/types'
-import * as Result from '../common/types/result'
 
-import { formatBalance, toWei } from '../utils/format-balances'
+import { onConnectHardwareWallet, getBalance } from '../common/async/wallet_async_handler'
+
+import { formatBalance, toWei, toWeiHex } from '../utils/format-balances'
+import { debounce } from '../../common/debounce'
 
 type Props = {
   wallet: WalletState
@@ -67,6 +70,8 @@ type Props = {
 }
 
 function Container (props: Props) {
+  let history = useHistory()
+  const { pathname: walletLocation } = useLocation()
   // Wallet Props
   const {
     isWalletCreated,
@@ -79,17 +84,17 @@ function Container (props: Props) {
     selectedNetwork,
     selectedAccount,
     hasInitialized,
-    userVisibleTokens,
     userVisibleTokensInfo,
     fullTokenList,
     portfolioPriceHistory,
     selectedPortfolioTimeline,
-    isFetchingPortfolioPriceHistory
+    isFetchingPortfolioPriceHistory,
+    transactionSpotPrices,
+    addUserAssetError
   } = props.wallet
 
   // Page Props
   const {
-    showRecoveryPhrase,
     invalidMnemonic,
     mnemonic,
     selectedTimeline,
@@ -99,10 +104,12 @@ function Container (props: Props) {
     selectedAssetPriceHistory,
     setupStillInProgress,
     isFetchingPriceHistory,
-    showIsRestoring,
     privateKey,
     importError,
-    showAddModal
+    showAddModal,
+    swapQuote,
+    isCryptoWalletsInstalled,
+    isMetaMaskInstalled
   } = props.page
 
   // const [view, setView] = React.useState<NavTypes>('crypto')
@@ -116,26 +123,129 @@ function Container (props: Props) {
   const [slippageTolerance, setSlippageTolerance] = React.useState<SlippagePresetObjectType>(SlippagePresetOptions[0])
   const [orderExpiration, setOrderExpiration] = React.useState<ExpirationPresetObjectType>(ExpirationPresetOptions[0])
   const [orderType, setOrderType] = React.useState<OrderTypes>('market')
-  // const [showRestore, setShowRestore] = React.useState<boolean>(false)
+  const [selectedWidgetTab, setSelectedWidgetTab] = React.useState<BuySendSwapTypes>('buy')
 
   // TODO (DOUGLAS): This needs to be set up in the Reducer in a future PR
   const [fromAsset, setFromAsset] = React.useState<AccountAssetOptionType>(AccountAssetOptions[0])
   const [toAsset, setToAsset] = React.useState<AccountAssetOptionType>(AccountAssetOptions[1])
+
+  React.useEffect(() => {
+    if (!swapQuote) {
+      setFromAmount('')
+      setToAmount('')
+      return
+    }
+
+    const { buyAmount, sellAmount, price } = swapQuote
+    setFromAmount(formatBalance(sellAmount, fromAsset.asset.decimals))
+    setToAmount(formatBalance(buyAmount, toAsset.asset.decimals))
+    setExchangeRate(formatBalance(price, 0))
+  }, [swapQuote])
+
+  const onSwapParamsChange = React.useCallback((
+    state: {
+      fromAmount: string,
+      toAmount: string
+    },
+    overrides: {
+      toOrFrom: ToOrFromType
+      asset?: AccountAssetOptionType
+      amount?: string
+      slippageTolerance?: SlippagePresetObjectType
+    },
+    full: boolean = false
+  ) => {
+    if (selectedWidgetTab !== 'swap') {
+      return
+    }
+
+    let fromAmountWei
+    let toAmountWei
+
+    if (overrides.toOrFrom === 'from') {
+      fromAmountWei = toWei(
+        overrides.amount ?? state.fromAmount,
+        fromAsset.asset.decimals
+      )
+    }
+
+    if (overrides.toOrFrom === 'to') {
+      toAmountWei = toWei(
+        overrides.amount ?? state.toAmount,
+        toAsset.asset.decimals
+      )
+    }
+
+    if (overrides.toOrFrom === 'to' && toAmountWei === '0') {
+      setFromAmount('')
+      return
+    }
+
+    if (overrides.toOrFrom === 'from' && fromAmountWei === '0') {
+      setToAmount('')
+      return
+    }
+
+    props.walletPageActions.fetchSwapQuote({
+      fromAsset: overrides.toOrFrom === 'from' && overrides.asset !== undefined ? overrides.asset : fromAsset,
+      fromAssetAmount: fromAmountWei,
+      toAsset: overrides.toOrFrom === 'to' && overrides.asset !== undefined ? overrides.asset : toAsset,
+      toAssetAmount: toAmountWei,
+      accountAddress: selectedAccount.address,
+      slippageTolerance: overrides.slippageTolerance ?? slippageTolerance,
+      networkChainId: selectedNetwork.chainId,
+      full
+    })
+  }, [selectedWidgetTab, selectedAccount, selectedNetwork])
+
+  const onSwapQuoteRefresh = () => onSwapParamsChange(
+    { fromAmount, toAmount },
+    { toOrFrom: 'from' }
+  )
+
+  const onSwapParamsChangeDebounced = React.useCallback(
+    // @ts-ignore
+    debounce(onSwapParamsChange, 400),
+    [onSwapParamsChange]
+  )
+
+  const isSwapButtonDisabled = () => {
+    if (!swapQuote) {
+      return true
+    }
+
+    if (toWei(toAmount, toAsset.asset.decimals) === '0') {
+      return true
+    }
+
+    return toWei(fromAmount, fromAsset.asset.decimals) === '0'
+  }
+
   const onSelectTransactAsset = (asset: AccountAssetOptionType, toOrFrom: ToOrFromType) => {
     if (toOrFrom === 'from') {
       setFromAsset(asset)
     } else {
       setToAsset(asset)
     }
+
+    onSwapParamsChange(
+      { fromAmount, toAmount },
+      { toOrFrom, asset }
+    )
   }
+
   const flipSwapAssets = () => {
     setFromAsset(toAsset)
     setToAsset(fromAsset)
   }
 
-  const onToggleShowRestore = () => {
-    props.walletPageActions.setShowIsRestoring(!showIsRestoring)
-  }
+  const onToggleShowRestore = React.useCallback(() => {
+    if (walletLocation === WalletRoutes.Restore) {
+      history.goBack()
+    } else {
+      history.push(WalletRoutes.Restore)
+    }
+  }, [walletLocation])
 
   const onSetToAddress = (value: string) => {
     setToAddress(value)
@@ -147,6 +257,10 @@ function Container (props: Props) {
 
   const onSetFromAmount = (value: string) => {
     setFromAmount(value)
+    onSwapParamsChangeDebounced(
+      { fromAmount, toAmount },
+      { toOrFrom: 'from', amount: value }
+    )
   }
 
   const onSetSendAmount = (value: string) => {
@@ -155,6 +269,10 @@ function Container (props: Props) {
 
   const onSetToAmount = (value: string) => {
     setToAmount(value)
+    onSwapParamsChangeDebounced(
+      { fromAmount, toAmount },
+      { toOrFrom: 'to', amount: value }
+    )
   }
 
   const onSetExchangeRate = (value: string) => {
@@ -167,6 +285,10 @@ function Container (props: Props) {
 
   const onSelectSlippageTolerance = (slippage: SlippagePresetObjectType) => {
     setSlippageTolerance(slippage)
+    onSwapParamsChange(
+      { fromAmount, toAmount },
+      { toOrFrom: 'from', slippageTolerance: slippage }
+    )
   }
 
   const onToggleOrderType = () => {
@@ -185,12 +307,6 @@ function Container (props: Props) {
     props.walletActions.selectNetwork(network)
   }
 
-  // In the future these will be actual paths
-  // for example wallet/rewards
-  // const navigateTo = (path: NavTypes) => {
-  //   setView(path)
-  // }
-
   const completeWalletSetup = (recoveryVerified: boolean) => {
     if (recoveryVerified) {
       props.walletPageActions.walletBackupComplete()
@@ -200,10 +316,10 @@ function Container (props: Props) {
 
   const onBackupWallet = () => {
     props.walletPageActions.walletBackupComplete()
+    history.goBack()
   }
 
   const restoreWallet = (mnemonic: string, password: string, isLegacy: boolean) => {
-    // isLegacy prop will be passed into the restoreWallet action once the keyring is setup handle the derivation.
     props.walletPageActions.restoreWallet({ mnemonic, password, isLegacy })
   }
 
@@ -222,10 +338,12 @@ function Container (props: Props) {
 
   const onShowBackup = () => {
     props.walletPageActions.showRecoveryPhrase(true)
+    history.push(WalletRoutes.Backup)
   }
 
   const onHideBackup = () => {
     props.walletPageActions.showRecoveryPhrase(false)
+    history.goBack()
   }
 
   const handlePasswordChanged = (value: string) => {
@@ -299,7 +417,7 @@ function Container (props: Props) {
   // This will scrape all of the user's accounts and combine the fiat value for every asset
   const fullPortfolioBalance = React.useMemo(() => {
     const amountList = userAssetList.map((item) => {
-      return fullAssetFiatBalance(item.asset)
+      return item.asset.visible ? fullAssetFiatBalance(item.asset) : 0
     })
     const grandTotal = amountList.reduce(function (a, b) {
       return a + b
@@ -329,7 +447,7 @@ function Container (props: Props) {
     if (!selectedAccount) {
       return '0'
     }
-    const token = selectedAccount.tokens.find((token) => token.asset.symbol === fromAsset.asset.symbol)
+    const token = selectedAccount.tokens ? selectedAccount.tokens.find((token) => token.asset.symbol === fromAsset.asset.symbol) : undefined
     return token ? formatBalance(token.assetBalance, token.asset.decimals) : '0'
   }, [accounts, selectedAccount, fromAsset])
 
@@ -365,10 +483,8 @@ function Container (props: Props) {
     }
   }
 
-  const onConnectHardwareWallet = (opts: HardwareWalletConnectOpts): Result.Type<HardwareWalletAccount[]> => {
-    // TODO (DOUGLAS): Add logic to connect a hardware wallet
-
-    return []
+  const onAddHardwareAccounts = (selected: HardwareWalletAccount[]) => {
+    props.walletPageActions.addHardwareAccounts(selected)
   }
 
   const onImportAccount = (accountName: string, privateKey: string) => {
@@ -383,7 +499,11 @@ function Container (props: Props) {
     props.walletPageActions.setImportError(hasError)
   }
 
-  const onRemoveAccount = (address: string) => {
+  const onRemoveAccount = (address: string, hardware: boolean) => {
+    if (hardware) {
+      props.walletPageActions.removeHardwareAccount({ address })
+      return
+    }
     props.walletPageActions.removeImportedAccount({ address })
   }
 
@@ -392,24 +512,26 @@ function Container (props: Props) {
     return result ? { success: true } : { success: false }
   }
 
-  const onUpdateVisibleTokens = (visibleTokens: string[]) => {
-    props.walletActions.updateVisibleTokens(visibleTokens)
-  }
-
   const onSubmitSwap = () => {
-    // TODO (DOUGLAS): logic Here to submit a swap transaction
+    onSwapParamsChange(
+      { fromAmount, toAmount },
+      { toOrFrom: 'from' },
+      true
+    )
   }
 
   const onSubmitSend = () => {
-    const asset = userVisibleTokensInfo.find((asset) => asset.symbol === fromAsset.asset.symbol)
-    // TODO: Use real gas price & limit
-    props.walletActions.sendTransaction({
+    fromAsset.asset.isErc20 && props.walletActions.sendERC20Transfer({
       from: selectedAccount.address,
       to: toAddress,
-      value: toWei(sendAmount, asset?.decimals ?? 0),
-      contractAddress: asset?.contractAddress ?? '',
-      gasPrice: '0x20000000000',
-      gasLimit: '0xFDE8'
+      value: toWeiHex(sendAmount, fromAsset.asset.decimals),
+      contractAddress: fromAsset.asset.contractAddress
+    })
+
+    !fromAsset.asset.isErc20 && props.walletActions.sendTransaction({
+      from: selectedAccount.address,
+      to: toAddress,
+      value: toWeiHex(sendAmount, fromAsset.asset.decimals)
     })
   }
 
@@ -425,112 +547,75 @@ function Container (props: Props) {
     props.walletPageActions.doneViewingPrivateKey()
   }
 
-  const renderWallet = React.useMemo(() => {
+  const onImportCryptoWallets = (password: string, newPassword: string) => {
+    props.walletPageActions.importFromCryptoWallets({ password, newPassword })
+  }
+
+  const onImportMetaMask = (password: string, newPassword: string) => {
+    props.walletPageActions.importFromMetaMask({ password, newPassword })
+  }
+
+  const checkWalletsToImport = () => {
+    props.walletPageActions.checkWalletsToImport()
+  }
+
+  const onSetUserAssetVisible = (contractAddress: string, isVisible: boolean) => {
+    props.walletActions.setUserAssetVisible({ contractAddress, chainId: selectedNetwork.chainId, isVisible })
+  }
+
+  const onAddUserAsset = (token: TokenInfo) => {
+    props.walletActions.addUserAsset({ token: token, chainId: selectedNetwork.chainId })
+  }
+
+  const onRemoveUserAsset = (contractAddress: string) => {
+    props.walletActions.removeUserAsset({ contractAddress, chainId: selectedNetwork.chainId })
+  }
+
+  React.useEffect(() => {
+    // Creates a list of Accepted Portfolio Routes
+    const acceptedPortfolioRoutes = userVisibleTokensInfo.map((token) => {
+      return `${WalletRoutes.Portfolio}/${token.symbol}`
+    })
+    // Creates a list of Accepted Account Routes
+    const acceptedAccountRoutes = accounts.map((account) => {
+      return `${WalletRoutes.Accounts}/${account.address}`
+    })
     if (!hasInitialized) {
-      return null
+      return
     }
-    if (showIsRestoring) {
-      return (
-        <OnboardingRestore
-          onRestore={restoreWallet}
-          toggleShowRestore={onToggleShowRestore}
-          hasRestoreError={restorError}
-        />
-      )
-    }
-    if (!isWalletCreated || setupStillInProgress) {
-      return (
-        <Onboarding
-          recoveryPhrase={recoveryPhrase}
-          onPasswordProvided={passwordProvided}
-          onSubmit={completeWalletSetup}
-          onShowRestore={onToggleShowRestore}
-        />
-      )
-    } else {
-      return (
-        <>
-          {isWalletLocked ? (
-            <LockScreen
-              onSubmit={unlockWallet}
-              disabled={inputValue === ''}
-              onPasswordChanged={handlePasswordChanged}
-              hasPasswordError={hasIncorrectPassword}
-              onShowRestore={onToggleShowRestore}
-            />
-          ) : (
-            <>
-              {showRecoveryPhrase ? (
-                <BackupWallet
-                  isOnboarding={false}
-                  onCancel={onHideBackup}
-                  onSubmit={onBackupWallet}
-                  recoveryPhrase={recoveryPhrase}
-                />
-              ) : (
-                <CryptoView
-                  onLockWallet={lockWallet}
-                  needsBackup={!isWalletBackedUp}
-                  onShowBackup={onShowBackup}
-                  accounts={accounts}
-                  networkList={networkList}
-                  onChangeTimeline={onChangeTimeline}
-                  onSelectAsset={onSelectAsset}
-                  portfolioBalance={fullPortfolioBalance}
-                  selectedAsset={selectedAsset}
-                  selectedUSDAssetPrice={selectedUSDAssetPrice}
-                  selectedBTCAssetPrice={selectedBTCAssetPrice}
-                  selectedAssetPriceHistory={formatedPriceHistory}
-                  portfolioPriceHistory={portfolioPriceHistory}
-                  selectedTimeline={selectedTimeline}
-                  selectedPortfolioTimeline={selectedPortfolioTimeline}
-                  transactions={transactions}
-                  userAssetList={userAssetList}
-                  fullAssetList={fullTokenList}
-                  onConnectHardwareWallet={onConnectHardwareWallet}
-                  onCreateAccount={onCreateAccount}
-                  onImportAccount={onImportAccount}
-                  isLoading={isFetchingPriceHistory}
-                  showAddModal={showAddModal}
-                  onToggleAddModal={onToggleAddModal}
-                  onUpdateAccountName={onUpdateAccountName}
-                  onUpdateVisibleTokens={onUpdateVisibleTokens}
-                  fetchFullTokenList={fetchFullTokenList}
-                  userWatchList={userVisibleTokens}
-                  selectedNetwork={selectedNetwork}
-                  onSelectNetwork={onSelectNetwork}
-                  isFetchingPortfolioPriceHistory={isFetchingPortfolioPriceHistory}
-                  onRemoveAccount={onRemoveAccount}
-                  privateKey={privateKey ?? ''}
-                  onDoneViewingPrivateKey={onDoneViewingPrivateKey}
-                  onViewPrivateKey={onViewPrivateKey}
-                  onImportAccountFromJson={onImportAccountFromJson}
-                  onSetImportError={onSetImportError}
-                  hasImportError={importError}
-                />
-              )}
-            </>
-          )}
-        </>
-      )
+    // If wallet is not yet created will Route to Onboarding
+    if ((!isWalletCreated || setupStillInProgress) && walletLocation !== WalletRoutes.Restore) {
+      checkWalletsToImport()
+      history.push(WalletRoutes.Onboarding)
+      // If wallet is created will Route to login
+    } else if (isWalletLocked && walletLocation !== WalletRoutes.Restore) {
+      history.push(WalletRoutes.Unlock)
+      // Allowed Private Routes if a wallet is unlocked else will redirect back to Portfolio
+    } else if (
+      !isWalletLocked &&
+      hasInitialized &&
+      walletLocation !== WalletRoutes.Backup &&
+      walletLocation !== WalletRoutes.Accounts &&
+      acceptedAccountRoutes.length !== 0 &&
+      !acceptedAccountRoutes.includes(walletLocation) &&
+      walletLocation !== WalletRoutes.Portfolio &&
+      acceptedPortfolioRoutes.length !== 0 &&
+      !acceptedPortfolioRoutes.includes(walletLocation)
+    ) {
+      history.push(WalletRoutes.Portfolio)
     }
   }, [
-    importError,
-    privateKey,
-    fullTokenList,
+    walletLocation,
     isWalletCreated,
     isWalletLocked,
-    recoveryPhrase,
-    isWalletBackedUp,
-    inputValue,
-    hasIncorrectPassword,
-    showRecoveryPhrase,
-    userAssetList,
-    userVisibleTokens,
+    hasInitialized,
+    setupStillInProgress,
+    selectedAsset,
     userVisibleTokensInfo,
-    portfolioPriceHistory,
-    isFetchingPortfolioPriceHistory
+    accounts
   ])
+
+  const hideMainComponents = (isWalletCreated && !setupStillInProgress) && !isWalletLocked && walletLocation !== WalletRoutes.Backup
 
   return (
     <WalletPageLayout>
@@ -539,17 +624,103 @@ function Container (props: Props) {
         selectedButton={view}
         onSubmit={navigateTo}
       /> */}
-      <WalletSubViewLayout>
-        {renderWallet}
-        {/* {view === 'crypto' ? (
-          renderWallet
-        ) : (
-          <div style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <h2>{view} view</h2>
-          </div>
-        )} */}
-      </WalletSubViewLayout>
-      {(isWalletCreated && !setupStillInProgress) && !isWalletLocked &&
+      <Switch>
+        <WalletSubViewLayout>
+          <Route path={WalletRoutes.Restore} exact={true}>
+            {isWalletLocked &&
+              <OnboardingRestore
+                onRestore={restoreWallet}
+                toggleShowRestore={onToggleShowRestore}
+                hasRestoreError={restorError}
+              />
+            }
+          </Route>
+          <Route path={WalletRoutes.Onboarding} exact={true}>
+            <Onboarding
+              recoveryPhrase={recoveryPhrase}
+              onPasswordProvided={passwordProvided}
+              onSubmit={completeWalletSetup}
+              onShowRestore={onToggleShowRestore}
+              braveLegacyWalletDetected={isCryptoWalletsInstalled}
+              metaMaskWalletDetected={isMetaMaskInstalled}
+              hasImportError={importError}
+              onImportCryptoWallets={onImportCryptoWallets}
+              onImportMetaMask={onImportMetaMask}
+              onSetImportError={onSetImportError}
+            />
+          </Route>
+          <Route path={WalletRoutes.Unlock} exact={true}>
+            {isWalletLocked &&
+              <LockScreen
+                onSubmit={unlockWallet}
+                disabled={inputValue === ''}
+                onPasswordChanged={handlePasswordChanged}
+                hasPasswordError={hasIncorrectPassword}
+                onShowRestore={onToggleShowRestore}
+              />
+            }
+          </Route>
+          <Route path={WalletRoutes.Backup} exact={true}>
+            <BackupWallet
+              isOnboarding={false}
+              onCancel={onHideBackup}
+              onSubmit={onBackupWallet}
+              recoveryPhrase={recoveryPhrase}
+            />
+          </Route>
+          <Route path={WalletRoutes.CryptoPage} exact={true}>
+            {hideMainComponents &&
+              <CryptoView
+                onLockWallet={lockWallet}
+                needsBackup={!isWalletBackedUp}
+                onShowBackup={onShowBackup}
+                accounts={accounts}
+                networkList={networkList}
+                onChangeTimeline={onChangeTimeline}
+                onSelectAsset={onSelectAsset}
+                portfolioBalance={fullPortfolioBalance}
+                selectedAsset={selectedAsset}
+                selectedUSDAssetPrice={selectedUSDAssetPrice}
+                selectedBTCAssetPrice={selectedBTCAssetPrice}
+                selectedAssetPriceHistory={formatedPriceHistory}
+                portfolioPriceHistory={portfolioPriceHistory}
+                selectedTimeline={selectedTimeline}
+                selectedPortfolioTimeline={selectedPortfolioTimeline}
+                transactions={transactions}
+                userAssetList={userAssetList}
+                fullAssetList={fullTokenList}
+                onConnectHardwareWallet={onConnectHardwareWallet}
+                onCreateAccount={onCreateAccount}
+                onImportAccount={onImportAccount}
+                isLoading={isFetchingPriceHistory}
+                showAddModal={showAddModal}
+                onToggleAddModal={onToggleAddModal}
+                onUpdateAccountName={onUpdateAccountName}
+                fetchFullTokenList={fetchFullTokenList}
+                selectedNetwork={selectedNetwork}
+                onSelectNetwork={onSelectNetwork}
+                isFetchingPortfolioPriceHistory={isFetchingPortfolioPriceHistory}
+                onRemoveAccount={onRemoveAccount}
+                privateKey={privateKey ?? ''}
+                onDoneViewingPrivateKey={onDoneViewingPrivateKey}
+                onViewPrivateKey={onViewPrivateKey}
+                onImportAccountFromJson={onImportAccountFromJson}
+                onSetImportError={onSetImportError}
+                hasImportError={importError}
+                onAddHardwareAccounts={onAddHardwareAccounts}
+                transactionSpotPrices={transactionSpotPrices}
+                userVisibleTokensInfo={userVisibleTokensInfo}
+                getBalance={getBalance}
+                onAddUserAsset={onAddUserAsset}
+                onSetUserAssetVisible={onSetUserAssetVisible}
+                onRemoveUserAsset={onRemoveUserAsset}
+                addUserAssetError={addUserAssetError}
+              />
+            }
+          </Route>
+        </WalletSubViewLayout>
+      </Switch>
+      {hideMainComponents &&
         <WalletWidgetStandIn>
           <BuySendSwap
             accounts={accounts}
@@ -559,6 +730,7 @@ function Container (props: Props) {
             swapFromAsset={fromAsset}
             selectedNetwork={selectedNetwork}
             selectedAccount={selectedAccount}
+            selectedTab={selectedWidgetTab}
             exchangeRate={exchangeRate}
             buyAmount={buyAmount}
             sendAmount={sendAmount}
@@ -572,6 +744,7 @@ function Container (props: Props) {
             buyAssetOptions={WyreAccountAssetOptions}
             sendAssetOptions={selectedAccount.tokens}
             swapAssetOptions={AccountAssetOptions}
+            isSwapSubmitDisabled={isSwapButtonDisabled()}
             onSetBuyAmount={onSetBuyAmount}
             onSetToAddress={onSetToAddress}
             onSelectExpiration={onSelectExpiration}
@@ -590,6 +763,8 @@ function Container (props: Props) {
             onSelectAccount={onSelectAccount}
             onToggleOrderType={onToggleOrderType}
             onSelectAsset={onSelectTransactAsset}
+            onSelectTab={setSelectedWidgetTab}
+            onSwapQuoteRefresh={onSwapQuoteRefresh}
           />
         </WalletWidgetStandIn>
       }

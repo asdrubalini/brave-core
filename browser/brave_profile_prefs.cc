@@ -73,8 +73,7 @@
 #endif
 
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
-#include "brave/components/brave_wallet/browser/eth_json_rpc_controller.h"
-#include "brave/components/brave_wallet/browser/keyring_controller.h"
+#include "brave/components/brave_wallet/browser/brave_wallet_prefs.h"
 #endif
 
 #if BUILDFLAG(ETHEREUM_REMOTE_CLIENT_ENABLED)
@@ -130,6 +129,10 @@
 using extensions::FeatureSwitch;
 #endif
 
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#include "brave/components/brave_vpn/pref_names.h"
+#endif
+
 namespace brave {
 
 void RegisterProfilePrefsForMigration(
@@ -144,7 +147,7 @@ void RegisterProfilePrefsForMigration(
 #endif
 
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
-  brave_wallet::KeyringController::RegisterProfilePrefsForMigration(registry);
+  brave_wallet::RegisterProfilePrefsForMigration(registry);
 #endif
 
   // Restore "Other Bookmarks" migration
@@ -175,7 +178,7 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   brave_sync::Prefs::RegisterProfilePrefs(registry);
 
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
-  registry->RegisterBooleanPref(kBraveVPNShowButton, true);
+  brave_vpn::prefs::RegisterProfilePrefs(registry);
 #endif
 
   // TODO(shong): Migrate this to local state also and guard in ENABLE_WIDEVINE.
@@ -329,14 +332,12 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterIntegerPref(kERCPrefVersion, 0);
   registry->RegisterStringPref(kERCAES256GCMSivNonce, "");
   registry->RegisterStringPref(kERCEncryptedSeed, "");
-  registry->RegisterBooleanPref(kERCLoadCryptoWalletsOnStartup, false);
   registry->RegisterBooleanPref(kERCOptedIntoCryptoWallets, false);
 #endif
 
   // Brave Wallet
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
-  brave_wallet::KeyringController::RegisterProfilePrefs(registry);
-  brave_wallet::EthJsonRpcController::RegisterProfilePrefs(registry);
+  brave_wallet::RegisterProfilePrefs(registry);
 #endif
 
   // Brave Search
@@ -372,6 +373,11 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterIntegerPref(
       prefs::kBraveDefaultSearchVersion,
       TemplateURLPrepopulateData::kBraveCurrentDataVersion);
+
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+  // Web discovery extension, default false
+  registry->RegisterBooleanPref(kWebDiscoveryEnabled, false);
+#endif
 
 #if BUILDFLAG(ENABLE_SPEEDREADER)
   speedreader::SpeedreaderService::RegisterProfilePrefs(registry);

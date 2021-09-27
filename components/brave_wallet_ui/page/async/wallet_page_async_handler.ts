@@ -15,10 +15,19 @@ import {
   AddAccountPayloadType,
   ImportAccountPayloadType,
   RemoveImportedAccountPayloadType,
+  RemoveHardwareAccountPayloadType,
   ViewPrivateKeyPayloadType,
-  ImportAccountFromJsonPayloadType
+  ImportAccountFromJsonPayloadType,
+  SwapParamsPayloadType,
+  ImportFromExternalWalletPayloadType
 } from '../constants/action_types'
+import {
+  HardwareWalletAccount
+} from '../../components/desktop/popup-modals/add-account-modal/hardware-wallet-connect/types'
 import { NewUnapprovedTxAdded } from '../../common/constants/action_types'
+import getSwapConfig from '../../constants/swap.config'
+import { toWeiHex } from '../../utils/format-balances'
+import { hexStrToNumberArray } from '../../utils/hex-utils'
 
 type Store = MiddlewareAPI<Dispatch<AnyAction>, any>
 
@@ -39,7 +48,6 @@ async function refreshWalletInfo (store: Store) {
 handler.on(WalletPageActions.createWallet.getType(), async (store, payload: CreateWalletPayloadType) => {
   const keyringController = (await getAPIProxy()).keyringController
   const result = await keyringController.createWallet(payload.password)
-  store.dispatch(WalletActions.setInitialVisibleTokens({ visibleAssets: ['eth', '0x0D8775F648430679A709E98d2b0Cb6250d2887EF'] }))
   store.dispatch(WalletPageActions.walletCreated({ mnemonic: result.mnemonic }))
 })
 
@@ -50,7 +58,6 @@ handler.on(WalletPageActions.restoreWallet.getType(), async (store, payload: Res
     store.dispatch(WalletPageActions.hasMnemonicError(!result.isValidMnemonic))
     return
   }
-  store.dispatch(WalletActions.setInitialVisibleTokens({ visibleAssets: ['eth', '0x0D8775F648430679A709E98d2b0Cb6250d2887EF'] }))
   await keyringController.notifyWalletBackupComplete()
   await refreshWalletInfo(store)
   store.dispatch(WalletPageActions.setShowIsRestoring(false))
@@ -130,40 +137,98 @@ handler.on(WalletPageActions.updateAccountName.getType(), async (store, payload:
   return result.success
 })
 
+handler.on(WalletPageActions.addHardwareAccounts.getType(), async (store, accounts: HardwareWalletAccount[]) => {
+  const keyringController = (await getAPIProxy()).keyringController
+  await keyringController.addHardwareAccounts(accounts)
+  store.dispatch(WalletPageActions.setShowAddModal(false))
+})
+
+handler.on(WalletPageActions.removeHardwareAccount.getType(), async (store, payload: RemoveHardwareAccountPayloadType) => {
+  const keyringController = (await getAPIProxy()).keyringController
+  await keyringController.removeHardwareAccount(payload.address)
+  store.dispatch(WalletPageActions.setShowAddModal(false))
+})
+
+handler.on(WalletPageActions.checkWalletsToImport.getType(), async (store) => {
+  const braveWalletService = (await getAPIProxy()).braveWalletService
+  const cwResult = await braveWalletService.isCryptoWalletsInstalled()
+  const mmResult = await braveWalletService.isMetaMaskInstalled()
+  store.dispatch(WalletPageActions.setCryptoWalletsInstalled(cwResult.installed))
+  store.dispatch(WalletPageActions.setMetaMaskInstalled(mmResult.installed))
+})
+
+handler.on(WalletPageActions.importFromCryptoWallets.getType(), async (store, payload: ImportFromExternalWalletPayloadType) => {
+  const braveWalletService = (await getAPIProxy()).braveWalletService
+  const result = await braveWalletService.importFromCryptoWallets(payload.password, payload.newPassword)
+  store.dispatch(WalletPageActions.setImportError(!result.success))
+})
+
+handler.on(WalletPageActions.importFromMetaMask.getType(), async (store, payload: ImportFromExternalWalletPayloadType) => {
+  const braveWalletService = (await getAPIProxy()).braveWalletService
+  const result = await braveWalletService.importFromMetaMask(payload.password, payload.newPassword)
+  store.dispatch(WalletPageActions.setImportError(!result.success))
+})
+
 handler.on(WalletActions.newUnapprovedTxAdded.getType(), async (store, payload: NewUnapprovedTxAdded) => {
   const pageHandler = (await getAPIProxy()).pageHandler
   await pageHandler.showApprovePanelUI()
 })
 
+handler.on(WalletPageActions.fetchSwapQuote.getType(), async (store, payload: SwapParamsPayloadType) => {
+  const swapController = (await getAPIProxy()).swapController
+
+  const {
+    fromAsset,
+    fromAssetAmount,
+    toAsset,
+    toAssetAmount,
+    accountAddress,
+    slippageTolerance,
+    full
+  } = payload
+
+  const config = getSwapConfig(payload.networkChainId)
+
+  const swapParams = {
+    takerAddress: accountAddress,
+    sellAmount: fromAssetAmount || '',
+    buyAmount: toAssetAmount || '',
+    buyToken: toAsset.asset.contractAddress || toAsset.asset.symbol,
+    sellToken: fromAsset.asset.contractAddress || fromAsset.asset.symbol,
+    buyTokenPercentageFee: config.buyTokenPercentageFee,
+    slippagePercentage: slippageTolerance.slippage / 100,
+    feeRecipient: config.feeRecipient,
+    gasPrice: ''
+  }
+
+  const quote = await (
+    full ? swapController.getTransactionPayload(swapParams) : swapController.getPriceQuote(swapParams)
+  )
+  quote.success && await store.dispatch(WalletPageActions.setSwapQuote(quote.response))
+
+  if (full && quote.success) {
+    const {
+      to,
+      data,
+      value,
+      estimatedGas,
+      gasPrice
+    } = quote.response
+
+    const params = {
+      from: accountAddress,
+      to,
+      value: toWeiHex(value, 0),
+      gas: toWeiHex(estimatedGas, 0),
+      gasPrice: toWeiHex(gasPrice, 0),
+      data: hexStrToNumberArray(data)
+    }
+
+    store.dispatch(WalletActions.sendTransaction(params))
+  }
+})
+
 // TODO(bbondy): Remove - Example usage:
-//
-// Swap API
-// import { SwapParams } from '../../constants/types'
-// const swapController = (await getAPIProxy()).swapController
-// var swap_response = await swapController.getPriceQuote({
-//   takerAddress: '',
-//   sellAmount: '',
-//   buyAmount: '1000000000000000000000',
-//   buyToken: 'ETH',
-//   sellToken: 'DAI',
-//   buyTokenPercentageFee: 0,
-//   slippagePercentage: 0,
-//   feeRecipient: '',
-//   gasPrice: ''
-// })
-// console.log('wallet price quote: ', swap_response)
-//  var swap_response2 = await swapController.getTransactionPayload({
-//   takerAddress: '',
-//   sellAmount: '',
-//   buyAmount: '1000000000000000000000',
-//   buyToken: 'ETH',
-//   sellToken: 'DAI',
-//   buyTokenPercentageFee: 0,
-//   slippagePercentage: 0,
-//   feeRecipient: '',
-//   gasPrice: ''
-// })
-// console.log(swap_response2)
 //
 // Interacting with the token registry
 // const ercTokenRegistry = (await getAPIProxy()).ercTokenRegistry

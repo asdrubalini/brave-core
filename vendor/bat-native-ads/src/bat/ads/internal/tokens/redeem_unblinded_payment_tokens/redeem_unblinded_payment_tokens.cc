@@ -10,6 +10,9 @@
 #include <utility>
 
 #include "base/check.h"
+#include "base/time/time.h"
+#include "bat/ads/ads.h"
+#include "bat/ads/ads_client.h"
 #include "bat/ads/internal/account/confirmations/confirmations.h"
 #include "bat/ads/internal/account/confirmations/confirmations_state.h"
 #include "bat/ads/internal/ads_client_helper.h"
@@ -17,14 +20,11 @@
 #include "bat/ads/internal/logging_util.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
 #include "bat/ads/internal/time_formatting_util.h"
-#include "bat/ads/internal/tokens/redeem_unblinded_payment_tokens/redeem_unblinded_payment_tokens_delegate.h"
 #include "bat/ads/internal/tokens/redeem_unblinded_payment_tokens/redeem_unblinded_payment_tokens_url_request_builder.h"
 #include "brave_base/random.h"
 #include "net/http/http_status_code.h"
 
 namespace ads {
-
-class RedeemUnblindedPaymentTokensDelegate;
 
 namespace {
 
@@ -41,11 +41,8 @@ const int64_t kExpiredNextTokenRedemptionAfterSeconds =
 
 RedeemUnblindedPaymentTokens::RedeemUnblindedPaymentTokens() = default;
 
-RedeemUnblindedPaymentTokens::~RedeemUnblindedPaymentTokens() = default;
-
-void RedeemUnblindedPaymentTokens::set_delegate(
-    RedeemUnblindedPaymentTokensDelegate* delegate) {
-  delegate_ = delegate;
+RedeemUnblindedPaymentTokens::~RedeemUnblindedPaymentTokens() {
+  delegate_ = nullptr;
 }
 
 void RedeemUnblindedPaymentTokens::MaybeRedeemAfterDelay(
@@ -99,11 +96,11 @@ void RedeemUnblindedPaymentTokens::Redeem() {
   RedeemUnblindedPaymentTokensUrlRequestBuilder url_request_builder(
       wallet_, unblinded_tokens);
   mojom::UrlRequestPtr url_request = url_request_builder.Build();
-  BLOG(5, UrlRequestToString(url_request));
+  BLOG(6, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
-  auto callback = std::bind(&RedeemUnblindedPaymentTokens::OnRedeem, this,
-                            std::placeholders::_1, unblinded_tokens);
+  const auto callback = std::bind(&RedeemUnblindedPaymentTokens::OnRedeem, this,
+                                  std::placeholders::_1, unblinded_tokens);
   AdsClientHelper::Get()->UrlRequest(std::move(url_request), callback);
 }
 
@@ -153,7 +150,7 @@ void RedeemUnblindedPaymentTokens::ScheduleNextTokenRedemption() {
   const base::Time next_token_redemption_date =
       CalculateNextTokenRedemptionDate();
 
-  ConfirmationsState::Get()->set_next_token_redemption_date(
+  ConfirmationsState::Get()->SetNextTokenRedemptionDate(
       next_token_redemption_date);
   ConfirmationsState::Get()->Save();
 
@@ -191,12 +188,12 @@ void RedeemUnblindedPaymentTokens::OnRetry() {
 
 base::TimeDelta RedeemUnblindedPaymentTokens::CalculateTokenRedemptionDelay() {
   base::Time next_token_redemption_date =
-      ConfirmationsState::Get()->get_next_token_redemption_date();
+      ConfirmationsState::Get()->GetNextTokenRedemptionDate();
 
   if (next_token_redemption_date.is_null()) {
     next_token_redemption_date = CalculateNextTokenRedemptionDate();
 
-    ConfirmationsState::Get()->set_next_token_redemption_date(
+    ConfirmationsState::Get()->SetNextTokenRedemptionDate(
         next_token_redemption_date);
     ConfirmationsState::Get()->Save();
   }
@@ -218,7 +215,7 @@ base::TimeDelta RedeemUnblindedPaymentTokens::CalculateTokenRedemptionDelay() {
 base::Time RedeemUnblindedPaymentTokens::CalculateNextTokenRedemptionDate() {
   const base::Time now = base::Time::Now();
 
-  uint64_t delay;
+  int64_t delay;
 
   if (!g_is_debug) {
     delay = kNextTokenRedemptionAfterSeconds;
@@ -226,7 +223,8 @@ base::Time RedeemUnblindedPaymentTokens::CalculateNextTokenRedemptionDate() {
     delay = kDebugNextTokenRedemptionAfterSeconds;
   }
 
-  const uint64_t rand_delay = brave_base::random::Geometric(delay);
+  const int64_t rand_delay =
+      static_cast<int64_t>(brave_base::random::Geometric(delay));
 
   return now + base::TimeDelta::FromSeconds(rand_delay);
 }

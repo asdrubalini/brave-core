@@ -14,6 +14,7 @@
 #include "base/json/json_reader.h"
 #include "base/notreached.h"
 #include "base/values.h"
+#include "bat/ads/ads_client.h"
 #include "bat/ads/confirmation_type.h"
 #include "bat/ads/internal/account/confirmations/confirmation_info.h"
 #include "bat/ads/internal/account/confirmations/confirmations.h"
@@ -42,17 +43,14 @@ using challenge_bypass_ristretto::UnblindedToken;
 
 RedeemUnblindedToken::RedeemUnblindedToken() = default;
 
-RedeemUnblindedToken::~RedeemUnblindedToken() = default;
-
-void RedeemUnblindedToken::set_delegate(
-    RedeemUnblindedTokenDelegate* delegate) {
-  delegate_ = delegate;
+RedeemUnblindedToken::~RedeemUnblindedToken() {
+  delegate_ = nullptr;
 }
 
 void RedeemUnblindedToken::Redeem(const ConfirmationInfo& confirmation) {
   BLOG(1, "Redeem unblinded token");
 
-  if (!confirmation.created) {
+  if (!confirmation.was_created) {
     CreateConfirmation(confirmation);
     return;
   }
@@ -69,11 +67,11 @@ void RedeemUnblindedToken::CreateConfirmation(
 
   CreateConfirmationUrlRequestBuilder url_request_builder(confirmation);
   mojom::UrlRequestPtr url_request = url_request_builder.Build();
-  BLOG(5, UrlRequestToString(url_request));
+  BLOG(6, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
-  auto callback = std::bind(&RedeemUnblindedToken::OnCreateConfirmation, this,
-                            std::placeholders::_1, confirmation);
+  const auto callback = std::bind(&RedeemUnblindedToken::OnCreateConfirmation,
+                                  this, std::placeholders::_1, confirmation);
   AdsClientHelper::Get()->UrlRequest(std::move(url_request), callback);
 }
 
@@ -103,7 +101,7 @@ void RedeemUnblindedToken::OnCreateConfirmation(
   }
 
   ConfirmationInfo new_confirmation = confirmation;
-  new_confirmation.created = true;
+  new_confirmation.was_created = true;
 
   FetchPaymentToken(new_confirmation);
 }
@@ -117,11 +115,11 @@ void RedeemUnblindedToken::FetchPaymentToken(
 
   FetchPaymentTokenUrlRequestBuilder url_request_builder(confirmation);
   mojom::UrlRequestPtr url_request = url_request_builder.Build();
-  BLOG(5, UrlRequestToString(url_request));
+  BLOG(6, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
-  auto callback = std::bind(&RedeemUnblindedToken::OnFetchPaymentToken, this,
-                            std::placeholders::_1, confirmation);
+  const auto callback = std::bind(&RedeemUnblindedToken::OnFetchPaymentToken,
+                                  this, std::placeholders::_1, confirmation);
   AdsClientHelper::Get()->UrlRequest(std::move(url_request), callback);
 }
 
@@ -143,7 +141,7 @@ void RedeemUnblindedToken::OnFetchPaymentToken(
     }
 
     ConfirmationInfo new_confirmation = confirmation;
-    new_confirmation.created = false;
+    new_confirmation.was_created = false;
 
     OnFailedToRedeemUnblindedToken(new_confirmation, /* should_retry */ true);
     return;

@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "base/observer_list.h"
 #include "bat/ads/internal/ads/promoted_content_ads/promoted_content_ad_observer.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
@@ -15,10 +16,9 @@ namespace ads {
 
 struct PromotedContentAdInfo;
 
-class PromotedContentAd : public PromotedContentAdObserver {
+class PromotedContentAd final : public PromotedContentAdObserver {
  public:
   PromotedContentAd();
-
   ~PromotedContentAd() override;
 
   void AddObserver(PromotedContentAdObserver* observer);

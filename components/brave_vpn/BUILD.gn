@@ -20,12 +20,15 @@ static_library("brave_vpn") {
     "brave_vpn_utils.h",
     "features.cc",
     "features.h",
+    "pref_names.cc",
+    "pref_names.h",
   ]
 
   deps = [
     "//base",
     "//brave/components/api_request_helper:api_request_helper",
     "//components/keyed_service/core",
+    "//components/prefs",
     "//services/network/public/cpp",
     "//third_party/abseil-cpp:absl",
     "//url",
@@ -68,6 +71,7 @@ static_library("brave_vpn") {
     deps += [
       ":brave_vpn_internal",
       ":mojom",
+      "//third_party/icu",
     ]
   }
 }
@@ -93,12 +97,19 @@ source_set("unit_tests") {
   if (enable_brave_vpn) {
     testonly = true
 
-    sources = [ "brave_vpn_unittest.cc" ]
+    sources = []
+
+    # Currently, tests are for desktop only (fails on Android).
+    if (is_win || is_mac) {
+      sources += [ "brave_vpn_unittest.cc" ]
+    }
 
     deps = [
       ":brave_vpn",
       "//base",
+      "//components/prefs:test_support",
       "//content/test:test_support",
+      "//services/network:test_support",
       "//testing/gtest",
     ]
   }

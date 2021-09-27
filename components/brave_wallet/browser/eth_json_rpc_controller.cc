@@ -14,7 +14,6 @@
 #include "brave/components/brave_wallet/browser/pref_names.h"
 #include "brave/components/brave_wallet/common/value_conversion_utils.h"
 #include "components/grit/brave_components_strings.h"
-#include "components/prefs/pref_registry_simple.h"
 #include "components/prefs/pref_service.h"
 #include "components/prefs/scoped_user_pref_update.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
@@ -304,20 +303,6 @@ void EthJsonRpcController::OnGetTransactionReceipt(
   std::move(callback).Run(true, receipt);
 }
 
-// static
-void EthJsonRpcController::RegisterProfilePrefs(PrefRegistrySimple* registry) {
-  registry->RegisterListPref(kBraveWalletCustomNetworks);
-  registry->RegisterStringPref(kBraveWalletCurrentChainId,
-                               brave_wallet::mojom::kMainnetChainId);
-}
-
-// static
-void EthJsonRpcController::ClearProfilePrefs(PrefService* prefs) {
-  DCHECK(prefs);
-  prefs->ClearPref(kBraveWalletCustomNetworks);
-  prefs->ClearPref(kBraveWalletCurrentChainId);
-}
-
 void EthJsonRpcController::SendRawTransaction(const std::string& signed_tx,
                                               SendRawTxCallback callback) {
   auto internal_callback =
@@ -349,14 +334,15 @@ void EthJsonRpcController::GetERC20TokenBalance(
     const std::string& contract,
     const std::string& address,
     EthJsonRpcController::GetERC20TokenBalanceCallback callback) {
-  auto internal_callback =
-      base::BindOnce(&EthJsonRpcController::OnGetERC20TokenBalance,
-                     weak_ptr_factory_.GetWeakPtr(), std::move(callback));
   std::string data;
   if (!erc20::BalanceOf(address, &data)) {
     std::move(callback).Run(false, "");
     return;
   }
+
+  auto internal_callback =
+      base::BindOnce(&EthJsonRpcController::OnGetERC20TokenBalance,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(callback));
   Request(eth_call("", contract, "", "", "", data, "latest"), true,
           std::move(internal_callback));
 }
@@ -382,14 +368,14 @@ void EthJsonRpcController::EnsProxyReaderGetResolverAddress(
     const std::string& contract_address,
     const std::string& domain,
     UnstoppableDomainsProxyReaderGetManyCallback callback) {
-  auto internal_callback = base::BindOnce(
-      &EthJsonRpcController::OnEnsProxyReaderGetResolverAddress,
-      weak_ptr_factory_.GetWeakPtr(), std::move(callback), domain);
   std::string data;
   if (!ens::GetResolverAddress(domain, &data)) {
     std::move(callback).Run(false, "");
   }
 
+  auto internal_callback = base::BindOnce(
+      &EthJsonRpcController::OnEnsProxyReaderGetResolverAddress,
+      weak_ptr_factory_.GetWeakPtr(), std::move(callback), domain);
   Request(eth_call("", contract_address, "", "", "", data, "latest"), true,
           std::move(internal_callback));
 }
@@ -423,14 +409,14 @@ bool EthJsonRpcController::EnsProxyReaderResolveAddress(
     const std::string& contract_address,
     const std::string& domain,
     UnstoppableDomainsProxyReaderGetManyCallback callback) {
-  auto internal_callback =
-      base::BindOnce(&EthJsonRpcController::OnEnsProxyReaderResolveAddress,
-                     base::Unretained(this), std::move(callback));
   std::string data;
   if (!ens::GetContentHashAddress(domain, &data)) {
     return false;
   }
 
+  auto internal_callback =
+      base::BindOnce(&EthJsonRpcController::OnEnsProxyReaderResolveAddress,
+                     base::Unretained(this), std::move(callback));
   Request(eth_call("", contract_address, "", "", "", data, "latest"), true,
           std::move(internal_callback));
   return true;
@@ -459,14 +445,14 @@ void EthJsonRpcController::UnstoppableDomainsProxyReaderGetMany(
     const std::string& domain,
     const std::vector<std::string>& keys,
     UnstoppableDomainsProxyReaderGetManyCallback callback) {
-  auto internal_callback = base::BindOnce(
-      &EthJsonRpcController::OnUnstoppableDomainsProxyReaderGetMany,
-      weak_ptr_factory_.GetWeakPtr(), std::move(callback));
   std::string data;
   if (!unstoppable_domains::GetMany(keys, domain, &data)) {
     std::move(callback).Run(false, "");
   }
 
+  auto internal_callback = base::BindOnce(
+      &EthJsonRpcController::OnUnstoppableDomainsProxyReaderGetMany,
+      weak_ptr_factory_.GetWeakPtr(), std::move(callback));
   Request(eth_call("", contract_address, "", "", "", data, "latest"), true,
           std::move(internal_callback));
 }
@@ -498,6 +484,66 @@ GURL EthJsonRpcController::GetBlockTrackerUrlFromNetwork(std::string chain_id) {
       return GURL(network->block_explorer_urls.front());
   }
   return GURL();
+}
+
+void EthJsonRpcController::GetEstimateGas(const std::string& from_address,
+                                          const std::string& to_address,
+                                          const std::string& gas,
+                                          const std::string& gas_price,
+                                          const std::string& value,
+                                          const std::string& data,
+                                          GetEstimateGasCallback callback) {
+  auto internal_callback =
+      base::BindOnce(&EthJsonRpcController::OnGetEstimateGas,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(callback));
+  return Request(eth_estimateGas(from_address, to_address, gas, gas_price,
+                                 value, data, "latest"),
+                 true, std::move(internal_callback));
+}
+
+void EthJsonRpcController::OnGetEstimateGas(
+    GetEstimateGasCallback callback,
+    const int status,
+    const std::string& body,
+    const base::flat_map<std::string, std::string>& headers) {
+  if (status < 200 || status > 299) {
+    std::move(callback).Run(false, "");
+    return;
+  }
+
+  std::string result;
+  if (!ParseEthEstimateGas(body, &result)) {
+    std::move(callback).Run(false, "");
+    return;
+  }
+
+  std::move(callback).Run(true, result);
+}
+
+void EthJsonRpcController::GetGasPrice(GetGasPriceCallback callback) {
+  auto internal_callback =
+      base::BindOnce(&EthJsonRpcController::OnGetGasPrice,
+                     weak_ptr_factory_.GetWeakPtr(), std::move(callback));
+  return Request(eth_gasPrice(), true, std::move(internal_callback));
+}
+
+void EthJsonRpcController::OnGetGasPrice(
+    GetGasPriceCallback callback,
+    const int status,
+    const std::string& body,
+    const base::flat_map<std::string, std::string>& headers) {
+  if (status < 200 || status > 299) {
+    std::move(callback).Run(false, "");
+    return;
+  }
+
+  std::string result;
+  if (!ParseEthGasPrice(body, &result)) {
+    std::move(callback).Run(false, "");
+    return;
+  }
+
+  std::move(callback).Run(true, result);
 }
 
 }  // namespace brave_wallet

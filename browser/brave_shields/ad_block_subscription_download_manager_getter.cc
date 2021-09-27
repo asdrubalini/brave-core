@@ -11,10 +11,8 @@
 #include "base/bind.h"
 #include "base/callback.h"
 #include "base/memory/singleton.h"
-#include "base/memory/weak_ptr.h"
 #include "base/task/task_traits.h"
 #include "base/task/thread_pool.h"
-#include "brave/browser/brave_browser_process.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/download/background_download_service_factory.h"
 #include "chrome/browser/profiles/profile.h"
@@ -23,7 +21,6 @@
 #include "chrome/browser/profiles/profile_manager_observer.h"
 #include "components/keyed_service/core/simple_dependency_manager.h"
 #include "components/keyed_service/core/simple_keyed_service_factory.h"
-#include "content/public/browser/browser_context.h"
 
 using brave_shields::AdBlockSubscriptionDownloadManager;
 
@@ -69,38 +66,40 @@ class AdBlockSubscriptionDownloadManagerFactory
   DISALLOW_COPY_AND_ASSIGN(AdBlockSubscriptionDownloadManagerFactory);
 };
 
+AdBlockSubscriptionDownloadManager* MaybeGetDownloadManager() {
+  auto* profile_manager = g_browser_process->profile_manager();
+  auto* profile =
+      profile_manager->GetProfileByPath(profile_manager->user_data_dir().Append(
+          profile_manager->GetInitialProfileDir()));
+  if (profile) {
+    return AdBlockSubscriptionDownloadManagerFactory::GetInstance()->GetForKey(
+        profile->GetProfileKey());
+  }
+  return nullptr;
+}
+
+// Allows the adblock component to retrieve a pointer to an
+// AdBlockSubscriptionDownloadManager once it's available, and deletes itself
+// on completion.
 class AdBlockSubscriptionDownloadManagerGetterImpl
     : public ProfileManagerObserver {
  public:
   AdBlockSubscriptionDownloadManagerGetterImpl(
       base::OnceCallback<void(AdBlockSubscriptionDownloadManager*)> callback)
       : callback_(std::move(callback)) {
-    auto* profile_manager = g_browser_process->profile_manager();
-    auto* profile = profile_manager->GetProfileByPath(
-        profile_manager->user_data_dir().Append(
-            profile_manager->GetInitialProfileDir()));
-    if (profile) {
-      GetDownloadManager(profile);
-    } else {
-      g_browser_process->profile_manager()->AddObserver(this);
-    }
+    g_browser_process->profile_manager()->AddObserver(this);
   }
 
  private:
   void OnProfileAdded(Profile* profile) override {
-    auto* profile_manager = g_browser_process->profile_manager();
-    if (profile->GetPath() == profile_manager->user_data_dir().Append(
-                                  profile_manager->GetInitialProfileDir())) {
-      profile_manager->RemoveObserver(this);
-      GetDownloadManager(profile);
+    if (auto* download_manager = MaybeGetDownloadManager()) {
+      std::move(callback_).Run(download_manager);
+      OnProfileManagerDestroying();
     }
   }
 
-  void GetDownloadManager(Profile* profile) {
-    auto* download_manager =
-        AdBlockSubscriptionDownloadManagerFactory::GetInstance()->GetForKey(
-            profile->GetProfileKey());
-    std::move(callback_).Run(download_manager);
+  void OnProfileManagerDestroying() override {
+    g_browser_process->profile_manager()->RemoveObserver(this);
     delete this;
   }
 
@@ -115,7 +114,11 @@ AdBlockSubscriptionDownloadManagerGetter() {
   return base::BindOnce(
       [](base::OnceCallback<void(AdBlockSubscriptionDownloadManager*)>
              callback) {
-        // self deletes when the download manager is retrieved
+        if (auto* download_manager = MaybeGetDownloadManager()) {
+          std::move(callback).Run(download_manager);
+          return;
+        }
+        // Self deletes when the download manager is retrieved.
         new AdBlockSubscriptionDownloadManagerGetterImpl(std::move(callback));
       });
 }

@@ -60,9 +60,11 @@ class EthNonceTrackerUnitTest : public testing::Test {
     url_loader_factory_.ClearResponses();
 
     // See EthJsonRpcController::SetNetwork() to better understand where the
-    // http://localhost:8545 URL used below is coming from.
-    url_loader_factory_.AddResponse("http://localhost:8545/",
-                                    GetResultString());
+    // http://localhost:7545 URL used below is coming from.
+    url_loader_factory_.AddResponse(
+        brave_wallet::GetNetworkURL(GetPrefs(), mojom::kLocalhostChainId)
+            .spec(),
+        GetResultString());
   }
 
  private:

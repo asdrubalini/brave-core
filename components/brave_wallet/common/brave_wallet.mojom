@@ -18,6 +18,8 @@ interface BraveWalletProvider {
   Request(string json_payload, bool auto_retry_on_network_change) => (int32 http_code, string response, map<string, string> headers);
   RequestEthereumPermissions() => (bool success, array<string> accounts);
   AddEthereumChain(string json_payload) => (bool success, int32 error, string message);
+  AddUnapprovedTransaction(TxData tx_data, string from) => (bool success, string tx_meta_id, string error_message);
+  AddUnapproved1559Transaction(TxData1559 tx_data, string from) => (bool success, string tx_meta_id, string error_message);
   GetChainId() => (string chain_id);
   GetAllowedAccounts() => (bool success, array<string> accounts);
 };
@@ -33,7 +35,8 @@ interface PanelHandlerFactory {
                      pending_receiver<AssetRatioController> asset_ratio_controller,
                      pending_receiver<KeyringController> keyring_controller,
                      pending_receiver<ERCTokenRegistry> erc_token_registry,
-                     pending_receiver<EthTxController> eth_tx_controller);
+                     pending_receiver<EthTxController> eth_tx_controller,
+                     pending_receiver<BraveWalletService> brave_wallet_service);
 };
 
 interface PageHandlerFactory {
@@ -46,7 +49,8 @@ interface PageHandlerFactory {
                     pending_receiver<AssetRatioController> asset_ratio_controller,
                     pending_receiver<KeyringController> keyring_controller,
                     pending_receiver<ERCTokenRegistry> erc_token_registry,
-                     pending_receiver<EthTxController> eth_tx_controller);
+                    pending_receiver<EthTxController> eth_tx_controller,
+                    pending_receiver<BraveWalletService> brave_wallet_service);
 
 };
 
@@ -129,10 +133,25 @@ struct SwapResponse {
   // Note we could also expose "sources" later
 };
 
+const string kLedgerHardwareVendor = "Ledger";
+
+struct HardwareWalletAccount {
+  string address;
+  string derivation_path;
+  string name;
+  string hardware_vendor;
+};
+
+struct HardwareInfo {
+  string path;
+  string vendor;
+};
+
 struct AccountInfo {
   string address;
   string name;
   bool is_imported;
+  HardwareInfo? hardware;
 };
 
 struct KeyringInfo {
@@ -155,10 +174,12 @@ interface WalletHandler {
 struct ERCToken {
   string contract_address;
   string name;
+  string logo;
   bool is_erc20;
   bool is_erc721;
   string symbol;
   int32 decimals;
+  bool visible = true;
 };
 
 // WebUI-side handler for requests from the browser.
@@ -206,6 +227,9 @@ interface KeyringController {
   AddObserver(pending_remote<KeyringControllerObserver> observer);
   SetDefaultKeyringDerivedAccountName(string address, string name) => (bool success);
   SetDefaultKeyringImportedAccountName(string address, string name) => (bool success);
+  AddHardwareAccounts(array<HardwareWalletAccount> info);
+  GetHardwareAccounts() => (array<AccountInfo> accounts);
+  RemoveHardwareAccount(string address);
 };
 
 interface AssetRatioController {
@@ -217,9 +241,9 @@ interface AssetRatioController {
 
 interface SwapController {
   GetPriceQuote(SwapParams params) =>
-      (bool success, SwapResponse response);
+      (bool success, SwapResponse? response, string error_response);
   GetTransactionPayload(SwapParams params) =>
-      (bool success, SwapResponse response);
+      (bool success, SwapResponse? response, string error_response);
 };
 
 interface EthJsonRpcControllerObserver {
@@ -309,17 +333,42 @@ struct TransactionInfo {
 
 interface EthTxControllerObserver {
   OnNewUnapprovedTx(TransactionInfo tx_info);
+  OnUnapprovedTxUpdated(TransactionInfo tx_info);
   OnTransactionStatusChanged(TransactionInfo tx_info);
 };
 
 interface EthTxController {
-  AddUnapprovedTransaction(TxData tx_data, string from) => (bool success, string tx_meta_id);
-  AddUnapproved1559Transaction(TxData1559 tx_data, string from) => (bool success, string tx_meta_id);
+  AddUnapprovedTransaction(TxData tx_data, string from) => (bool success, string tx_meta_id, string error_message);
+  AddUnapproved1559Transaction(TxData1559 tx_data, string from) => (bool success, string tx_meta_id, string error_message);
   ApproveTransaction(string tx_meta_id) => (bool status);
   RejectTransaction(string tx_meta_id) => (bool status);
+  SetGasPriceAndLimitForUnapprovedTransaction(string tx_meta_id, string gas_price, string gas_limit) => (bool success);
   MakeERC20TransferData(string to_address, string amount) => (bool success, array<uint8> data);
   MakeERC20ApproveData(string spender_address, string amount) => (bool success, array<uint8> data);
   // This returns different data depending on which network is currently selected in EthJsonRpcController
   GetAllTransactionInfo(string from) => (array<TransactionInfo> transaction_infos);
   AddObserver(pending_remote<EthTxControllerObserver> observer);
+  ApproveHardwareTransaction(string tx_meta_id) => (bool success, string message);
+  ProcessLedgerSignature(string tx_meta_id, string v, string r, string s) => (bool status);
+};
+
+interface BraveWalletService {
+  GetUserAssets(string chain_id) => (array<ERCToken> tokens);
+  AddUserAsset(ERCToken token, string chain_id) => (bool success);
+  RemoveUserAsset(string contract_address, string chain_id) => (bool success);
+  SetUserAssetVisible(string contract_address, string chain_id, bool visible) => (bool success);
+  IsCryptoWalletsInstalled() => (bool installed);
+  IsMetaMaskInstalled() => (bool installed);
+  ImportFromCryptoWallets(string password, string newPassword) => (bool success);
+  ImportFromMetaMask(string password, string newPassword) => (bool success);
+  GetDefaultWallet() => (DefaultWallet default_wallet);
+  SetDefaultWallet(DefaultWallet default_wallet);
+};
+
+enum DefaultWallet {
+  Ask,
+  None,
+  CryptoWallets,
+  Metamask,
+  BraveWallet
 };

@@ -11,19 +11,14 @@
 
 #include "bat/ads/internal/ad_targeting/processors/behavioral/bandits/bandit_feedback_info.h"
 #include "bat/ads/internal/ad_targeting/processors/processor.h"
-#include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
 namespace ad_targeting {
-
-class EpsilonGreedyBanditArms;
-
 namespace processor {
 
-class EpsilonGreedyBandit : public Processor<BanditFeedbackInfo> {
+class EpsilonGreedyBandit final : public Processor<BanditFeedbackInfo> {
  public:
   EpsilonGreedyBandit();
-
   ~EpsilonGreedyBandit() override;
 
   void Process(const BanditFeedbackInfo& feedback) override;

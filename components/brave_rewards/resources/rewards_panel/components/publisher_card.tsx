@@ -8,12 +8,15 @@ import { LocaleContext, formatMessage } from '../../shared/lib/locale_context'
 import { getPublisherPlatformName } from '../../shared/lib/publisher_platform'
 import { HostContext, useHostListener } from '../lib/host_context'
 import { MonthlyTipAction } from '../lib/interfaces'
+import { NewTabLink } from '../../shared/components/new_tab_link'
 import { ToggleButton } from './toggle_button'
 import { MonthlyTipView } from './monthly_tip_view'
 import { VerifiedIcon } from './icons/verified_icon'
-import { LoadingIcon } from './icons/loading_icon'
+import { LoadingIcon } from '../../shared/components/icons/loading_icon'
 
 import * as style from './publisher_card.style'
+
+const pendingTipsURL = 'https://brave.com/faq/#unclaimed-funds'
 
 export function PublisherCard () {
   const { getString } = React.useContext(LocaleContext)
@@ -23,6 +26,8 @@ export function PublisherCard () {
     React.useState(host.state.publisherInfo)
   const [publisherRefreshing, setPublisherRefreshing] =
     React.useState(host.state.publisherRefreshing)
+  const [externalWallet, setExternalWallet] =
+    React.useState(host.state.externalWallet)
   const [settings, setSettings] = React.useState(host.state.settings)
 
   const [showPublisherLoading, setShowPublisherLoading] = React.useState(false)
@@ -30,6 +35,7 @@ export function PublisherCard () {
   useHostListener(host, (state) => {
     setPublisherInfo(state.publisherInfo)
     setPublisherRefreshing(state.publisherRefreshing)
+    setExternalWallet(state.externalWallet)
     setSettings(host.state.settings)
   })
 
@@ -37,23 +43,79 @@ export function PublisherCard () {
     return null
   }
 
-  function renderStatusMessage () {
+  function shouldRenderPendingBubble () {
+    if (!publisherInfo) {
+      return false
+    }
+
+    const { registered, supportedWalletProviders } = publisherInfo
+
+    // Show the bubble if the publisher is not registered.
+    if (!registered) {
+      return true
+    }
+
+    // Do not show the bubble if the publisher is registered and the user does
+    // not have an external wallet.
+    if (!externalWallet) {
+      return false
+    }
+
+    // Do not show the bubble if the publisher has a wallet provider address
+    // that matches the user's wallet provider.
+    if (supportedWalletProviders.includes(externalWallet.provider)) {
+      return false
+    }
+
+    return true
+  }
+
+  function renderPendingBubble () {
+    if (!publisherInfo || !shouldRenderPendingBubble()) {
+      return null
+    }
+
+    return (
+      <style.pendingBubble>
+        <style.pendingBubbleHeader>
+          {
+            getString(publisherInfo.registered
+              ? 'pendingTipTitleRegistered'
+              : 'pendingTipTitle')
+          }
+        </style.pendingBubbleHeader>
+        <style.pendingBubbleText>
+          {
+            formatMessage(getString('pendingTipText'), {
+              tags: {
+                $1: content => (
+                  <NewTabLink key='link' href={pendingTipsURL}>
+                    {content}
+                  </NewTabLink>
+                )
+              }
+            })
+          }
+        </style.pendingBubbleText>
+      </style.pendingBubble>
+    )
+  }
+
+  function renderStatusIndicator () {
     if (!publisherInfo) {
       return null
     }
 
-    if (publisherInfo.registered) {
-      return (
-        <style.verified>
-          <VerifiedIcon />{getString('verifiedCreator')}
-        </style.verified>
-      )
-    }
+    const { registered } = publisherInfo
 
     return (
-      <style.unverified>
-        <VerifiedIcon />{getString('unverifiedCreator')}
-      </style.unverified>
+      <style.statusIndicator className={registered ? 'registered' : ''}>
+        <VerifiedIcon />
+        {getString(registered ? 'verifiedCreator' : 'unverifiedCreator')}
+        <div className='pending-bubble'>
+          {renderPendingBubble()}
+        </div>
+      </style.statusIndicator>
     )
   }
 
@@ -99,7 +161,7 @@ export function PublisherCard () {
         <style.name>
           {getPublisherName()}
           <style.status>
-            {renderStatusMessage()}
+            {renderStatusIndicator()}
             <style.refreshStatus>
               {
                 publisherRefreshing || showPublisherLoading

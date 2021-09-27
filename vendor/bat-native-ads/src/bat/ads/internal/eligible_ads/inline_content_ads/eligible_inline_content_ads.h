@@ -6,11 +6,11 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_ELIGIBLE_ADS_INLINE_CONTENT_ADS_ELIGIBLE_INLINE_CONTENT_ADS_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_ELIGIBLE_ADS_INLINE_CONTENT_ADS_ELIGIBLE_INLINE_CONTENT_ADS_H_
 
-#include <functional>
 #include <string>
 
-#include "bat/ads/internal/ad_events/ad_event_info.h"
-#include "bat/ads/internal/bundle/creative_inline_content_ad_info.h"
+#include "bat/ads/internal/ad_events/ad_event_info_aliases.h"
+#include "bat/ads/internal/bundle/creative_inline_content_ad_info_aliases.h"
+#include "bat/ads/internal/eligible_ads/inline_content_ads/eligible_inline_content_ads_aliases.h"
 #include "bat/ads/internal/frequency_capping/frequency_capping_aliases.h"
 
 namespace ads {
@@ -28,15 +28,11 @@ class AntiTargeting;
 
 namespace inline_content_ads {
 
-using GetEligibleAdsCallback =
-    std::function<void(const bool, const CreativeInlineContentAdList&)>;
-
-class EligibleAds {
+class EligibleAds final {
  public:
   EligibleAds(
       ad_targeting::geographic::SubdivisionTargeting* subdivision_targeting,
       resource::AntiTargeting* anti_targeting);
-
   ~EligibleAds();
 
   void SetLastServedAd(const CreativeAdInfo& creative_ad);
@@ -45,6 +41,10 @@ class EligibleAds {
            const std::string& dimensions,
            GetEligibleAdsCallback callback);
 
+  void GetV2(const ad_targeting::UserModelInfo& user_model,
+             const std::string& dimensions,
+             GetEligibleAdsV2Callback callback);
+
  private:
   ad_targeting::geographic::SubdivisionTargeting*
       subdivision_targeting_;  // NOT OWNED
@@ -52,6 +52,17 @@ class EligibleAds {
   resource::AntiTargeting* anti_targeting_resource_;  // NOT OWNED
 
   CreativeAdInfo last_served_creative_ad_;
+
+  void GetEligibleAds(const ad_targeting::UserModelInfo& user_model,
+                      const AdEventList& ad_events,
+                      const BrowsingHistoryList& browsing_history,
+                      const std::string& dimensions,
+                      GetEligibleAdsV2Callback callback) const;
+
+  void ChooseAd(const ad_targeting::UserModelInfo& user_model,
+                const AdEventList& ad_events,
+                const CreativeInlineContentAdList& eligible_ads,
+                GetEligibleAdsV2Callback callback) const;
 
   void GetForParentChildSegments(const ad_targeting::UserModelInfo& user_model,
                                  const std::string& dimensions,

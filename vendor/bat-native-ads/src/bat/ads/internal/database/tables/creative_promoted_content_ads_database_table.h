@@ -6,28 +6,20 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CREATIVE_PROMOTED_CONTENT_ADS_DATABASE_TABLE_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CREATIVE_PROMOTED_CONTENT_ADS_DATABASE_TABLE_H_
 
-#include <functional>
 #include <memory>
 #include <string>
-#include <vector>
 
-#include "bat/ads/ads_client.h"
-#include "bat/ads/internal/bundle/creative_promoted_content_ad_info.h"
+#include "base/check_op.h"
+#include "bat/ads/ads_client_aliases.h"
+#include "bat/ads/internal/bundle/creative_promoted_content_ad_info_aliases.h"
 #include "bat/ads/internal/database/database_table.h"
-#include "bat/ads/internal/segments/segments_alias.h"
+#include "bat/ads/internal/database/tables/creative_promoted_content_ads_database_table_aliases.h"
+#include "bat/ads/internal/segments/segments_aliases.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
 
-using GetCreativePromotedContentAdCallback =
-    std::function<void(const bool,
-                       const std::string& creative_instance_id,
-                       const CreativePromotedContentAdInfo&)>;
-
-using GetCreativePromotedContentAdsCallback =
-    std::function<void(const bool,
-                       const std::vector<std::string>&,
-                       const CreativePromotedContentAdList&)>;
+struct CreativePromotedContentAdInfo;
 
 namespace database {
 namespace table {
@@ -38,10 +30,9 @@ class Dayparts;
 class GeoTargets;
 class Segments;
 
-class CreativePromotedContentAds : public Table {
+class CreativePromotedContentAds final : public Table {
  public:
   CreativePromotedContentAds();
-
   ~CreativePromotedContentAds() override;
 
   void Save(const CreativePromotedContentAdList& creative_promoted_content_ads,
@@ -57,9 +48,13 @@ class CreativePromotedContentAds : public Table {
 
   void GetAll(GetCreativePromotedContentAdsCallback callback);
 
-  void set_batch_size(const int batch_size);
+  void set_batch_size(const int batch_size) {
+    DCHECK_GT(batch_size, 0);
 
-  std::string get_table_name() const override;
+    batch_size_ = batch_size;
+  }
+
+  std::string GetTableName() const override;
 
   void Migrate(mojom::DBTransaction* transaction,
                const int to_version) override;

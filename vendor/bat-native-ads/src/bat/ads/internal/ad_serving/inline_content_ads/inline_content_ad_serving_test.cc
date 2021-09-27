@@ -6,11 +6,13 @@
 #include "bat/ads/internal/ad_serving/inline_content_ads/inline_content_ad_serving.h"
 
 #include "base/guid.h"
+#include "bat/ads/inline_content_ad_info.h"
 #include "bat/ads/internal/ad_serving/ad_targeting/geographic/subdivision/subdivision_targeting.h"
 #include "bat/ads/internal/ads/inline_content_ads/inline_content_ad_builder.h"
 #include "bat/ads/internal/database/tables/creative_inline_content_ads_database_table.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting_resource.h"
 #include "bat/ads/internal/unittest_base.h"
+#include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
 #include "net/http/http_status_code.h"
 
@@ -56,8 +58,8 @@ class BatAdsInlineContentAdServingTest : public UnitTestBase {
     creative_inline_content_ad.creative_instance_id = base::GenerateGUID();
     creative_inline_content_ad.creative_set_id = base::GenerateGUID();
     creative_inline_content_ad.campaign_id = base::GenerateGUID();
-    creative_inline_content_ad.start_at_timestamp = DistantPastAsTimestamp();
-    creative_inline_content_ad.end_at_timestamp = DistantFutureAsTimestamp();
+    creative_inline_content_ad.start_at = DistantPast();
+    creative_inline_content_ad.end_at = DistantFuture();
     creative_inline_content_ad.daily_cap = 1;
     creative_inline_content_ad.advertiser_id = base::GenerateGUID();
     creative_inline_content_ad.priority = 1;

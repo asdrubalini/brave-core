@@ -75,6 +75,8 @@ bool GetUseStagingInfuraEndpoint() {
   return env->HasVar("BRAVE_INFURA_STAGING");
 }
 
+const char kGanacheLocalhostURL[] = "http://localhost:7545/";
+
 // Precompiled networks available in native wallet.
 const brave_wallet::mojom::EthereumChain kKnownNetworks[] = {
     {brave_wallet::mojom::kMainnetChainId,
@@ -119,9 +121,9 @@ const brave_wallet::mojom::EthereumChain kKnownNetworks[] = {
      18},
     {brave_wallet::mojom::kLocalhostChainId,
      "Localhost",
-     {"http://localhost:8545/"},
+     {kGanacheLocalhostURL},
      {},
-     {"http://localhost:8545/"},
+     {kGanacheLocalhostURL},
      "ETH",
      "Ethereum",
      18}};
@@ -706,6 +708,46 @@ void GetAllChains(PrefService* prefs,
                   std::vector<mojom::EthereumChainPtr>* result) {
   GetAllKnownChains(result);
   GetAllCustomChains(prefs, result);
+}
+
+std::string GetNetworkId(PrefService* prefs, const std::string& chain_id) {
+  DCHECK(prefs);
+
+  auto subdomain = GetInfuraSubdomainForKnownChainId(chain_id);
+  if (!subdomain.empty())
+    return subdomain;
+  // Separate check for localhost in known networks as it is predefined
+  // but doesnt have infura subdomain.
+  mojom::EthereumChainPtr known_network = GetKnownChain(chain_id);
+  if (known_network) {
+    if (known_network->rpc_urls.size())
+      return GURL(known_network->rpc_urls.front()).spec();
+  }
+
+  std::vector<mojom::EthereumChainPtr> custom_chains;
+  GetAllCustomChains(prefs, &custom_chains);
+  std::string id;
+  for (const auto& network : custom_chains) {
+    if (network->chain_id != chain_id)
+      continue;
+    if (network->rpc_urls.size()) {
+      id = GURL(network->rpc_urls.front()).host();
+    } else {
+      id = chain_id;
+    }
+    break;
+  }
+
+  return id;
+}
+
+mojom::DefaultWallet GetDefaultWallet(PrefService* prefs) {
+  return static_cast<brave_wallet::mojom::DefaultWallet>(
+      prefs->GetInteger(kBraveWalletWeb3Provider));
+}
+
+void SetDefaultWallet(PrefService* prefs, mojom::DefaultWallet default_wallet) {
+  prefs->SetInteger(kBraveWalletWeb3Provider, static_cast<int>(default_wallet));
 }
 
 }  // namespace brave_wallet

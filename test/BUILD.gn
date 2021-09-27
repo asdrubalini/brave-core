@@ -198,6 +198,7 @@ test("brave_unit_tests") {
     "//brave/components/brave_wallet/browser/test:brave_wallet_unit_tests",
     "//brave/components/brave_wallet/common/buildflags",
     "//brave/components/brave_wallet/common/test:brave_wallet_common_unit_tests",
+    "//brave/components/brave_wallet/renderer/test:unit_tests",
     "//brave/components/child_process_monitor:unittests",
     "//brave/components/ipfs/buildflags",
     "//brave/components/ipfs/test:brave_ipfs_unit_tests",
@@ -294,7 +295,6 @@ test("brave_unit_tests") {
       "//brave/browser/resources/settings/brandcode_config_fetcher_unittest.cc",
       "//brave/browser/resources/settings/reset_report_uploader_unittest.cc",
       "//brave/browser/themes/brave_theme_service_unittest.cc",
-      "//brave/browser/ui/brave_tooltips/brave_tooltips_unittest.cc",
       "//brave/browser/ui/toolbar/brave_location_bar_model_delegate_unittest.cc",
       "//brave/browser/ui/views/accelerator_table_unittest.cc",
       "//brave/chromium_src/chrome/browser/devtools/url_constants_unittest.cc",
@@ -339,6 +339,18 @@ test("brave_unit_tests") {
     sources += [
       "//brave/chromium_src/chrome/browser/shell_integration_unittest_mac.cc",
       "//brave/chromium_src/chrome/common/chrome_constants_unittest_mac.cc",
+    ]
+  }
+
+  if (toolkit_views) {
+    sources += [
+      "//brave/browser/ui/views/brave_ads/bounds_util_unittest.cc",
+      "//brave/browser/ui/views/brave_ads/color_util_unittest.cc",
+      "//brave/browser/ui/views/brave_tooltips/brave_tooltips_unittest.cc",
+    ]
+    deps += [
+      "//brave/browser/ui/views/brave_ads",
+      "//brave/browser/ui/views/brave_tooltips",
     ]
   }
 
@@ -541,17 +553,6 @@ if (!is_android && !is_ios) {
   }
 }
 
-group("brave_browser_tests_deps") {
-  testonly = true
-
-  # force these to build for tests
-  deps = [
-    "//brave",
-    "//brave:browser_dependencies",
-    "//brave:child_dependencies",
-  ]
-}
-
 static_library("browser_test_support") {
   testonly = true
   public_deps = [ "//chrome/test:test_support" ]
@@ -695,19 +696,13 @@ if (!is_android) {
       "//chrome/browser/ui/test/test_browser_ui.h",
     ]
 
-    if (is_mac) {
-      sources += [
-        "//chrome/browser/ui/test/test_browser_dialog_mac.h",
-        "//chrome/browser/ui/test/test_browser_dialog_mac.mm",
-      ]
-    }
-
     deps = [
       "//brave/browser/autoplay:browser_tests",
       "//brave/browser/brave_ads",
       "//brave/browser/brave_wallet:tab_helper",
       "//brave/browser/browsing_data:browser_tests",
       "//brave/browser/farbling:browser_tests",
+      "//brave/browser/metrics/buildflags",
       "//brave/browser/permissions:browser_tests",
       "//brave/browser/tor:browser_tests",
       "//brave/browser/ui:browser_tests",
@@ -742,6 +737,16 @@ if (!is_android) {
       "//testing/gmock",
     ]
 
+    if (is_mac) {
+      sources += [
+        "//brave/chromium_src/components/os_crypt/keychain_password_mac_browsertest.mm",
+        "//chrome/browser/ui/test/test_browser_dialog_mac.h",
+        "//chrome/browser/ui/test/test_browser_dialog_mac.mm",
+      ]
+
+      deps += [ "//components/os_crypt:test_support" ]
+    }
+
     if (use_aura) {
       deps += [ "//ui/aura:test_support" ]
     }
@@ -774,8 +779,7 @@ if (!is_android) {
         "//brave/browser/brave_wallet/asset_ratio_controller_browsertest.cc",
         "//brave/browser/brave_wallet/brave_wallet_ethereum_chain_browsertest.cc",
         "//brave/browser/brave_wallet/brave_wallet_event_emitter_browsertest.cc",
-        "//brave/browser/brave_wallet/eth_json_rpc_controller_browsertest.cc",
-        "//brave/browser/brave_wallet/swap_controller_browsertest.cc",
+        "//brave/browser/brave_wallet/brave_wallet_tab_helper_browsertest.cc",
         "//brave/browser/ui/views/toolbar/wallet_button_browsertest.cc",
         "//brave/browser/ui/webui/brave_wallet/wallet_panel_ui_browsertest.cc",
       ]
@@ -784,6 +788,7 @@ if (!is_android) {
         "//brave/browser/brave_wallet",
         "//brave/components/brave_wallet/browser",
         "//brave/components/brave_wallet/common",
+        "//brave/components/brave_wallet/common:mojom",
       ]
     }
 
@@ -872,7 +877,6 @@ if (!is_android) {
     defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
 
     deps += [
-      ":brave_browser_tests_deps",
       "//brave/app:brave_generated_resources_grit",
       "//brave/app:command_ids",
       "//brave/app/theme:brave_theme_resources_grit",
@@ -970,6 +974,7 @@ if (!is_android) {
       "//brave/app/theme:brave_unscaled_resources_grit",
       "//brave/browser/brave_ads",
       "//brave/browser/ethereum_remote_client/buildflags",
+      "//brave/browser/metrics/buildflags",
       "//brave/browser/net",
       "//brave/browser/themes",
       "//brave/common:pref_names",
@@ -982,6 +987,8 @@ if (!is_android) {
       "//brave/components/brave_sync:prefs",
       "//brave/components/brave_vpn/buildflags",
       "//brave/components/brave_wallet/browser",
+      "//brave/components/brave_wallet/common",
+      "//brave/components/brave_wallet/common:mojom",
       "//brave/components/brave_wayback_machine",
       "//brave/components/ipfs",
       "//brave/components/ipfs/buildflags",
@@ -1022,6 +1029,10 @@ if (!is_android) {
       "//content/test:android_test_message_pump_support",
       "//testing/android/native_test:native_test_support",
     ]
+
+    if (enable_brave_vpn) {
+      deps += [ "//brave/components/brave_vpn" ]
+    }
 
     # There are three types of tests that need to be rewritten for Android:
     # 1. using extensions

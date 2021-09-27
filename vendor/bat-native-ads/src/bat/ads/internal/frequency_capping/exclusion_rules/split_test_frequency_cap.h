@@ -16,7 +16,6 @@ namespace ads {
 class SplitTestFrequencyCap : public ExclusionRule<CreativeAdInfo> {
  public:
   SplitTestFrequencyCap();
-
   ~SplitTestFrequencyCap() override;
 
   SplitTestFrequencyCap(const SplitTestFrequencyCap&) = delete;
@@ -24,7 +23,7 @@ class SplitTestFrequencyCap : public ExclusionRule<CreativeAdInfo> {
 
   bool ShouldExclude(const CreativeAdInfo& ad) override;
 
-  std::string get_last_message() const override;
+  std::string GetLastMessage() const override;
 
  private:
   std::string last_message_;

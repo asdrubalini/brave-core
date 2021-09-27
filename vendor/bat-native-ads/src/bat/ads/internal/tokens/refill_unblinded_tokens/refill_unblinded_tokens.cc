@@ -14,6 +14,7 @@
 #include "base/json/json_reader.h"
 #include "base/notreached.h"
 #include "base/time/time.h"
+#include "bat/ads/ads_client.h"
 #include "bat/ads/internal/account/confirmations/confirmations_state.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/logging.h"
@@ -21,6 +22,7 @@
 #include "bat/ads/internal/privacy/challenge_bypass_ristretto_util.h"
 #include "bat/ads/internal/privacy/privacy_util.h"
 #include "bat/ads/internal/privacy/tokens/token_generator.h"
+#include "bat/ads/internal/privacy/tokens/token_generator_interface.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_token_info.h"
 #include "bat/ads/internal/privacy/unblinded_tokens/unblinded_tokens.h"
 #include "bat/ads/internal/server/ads_server_util.h"
@@ -49,15 +51,12 @@ const int kMaximumUnblindedTokens = 50;
 
 RefillUnblindedTokens::RefillUnblindedTokens(
     privacy::TokenGeneratorInterface* token_generator)
-    : token_generator_(token_generator), weak_ptr_factory_(this) {
+    : token_generator_(token_generator) {
   DCHECK(token_generator_);
 }
 
-RefillUnblindedTokens::~RefillUnblindedTokens() = default;
-
-void RefillUnblindedTokens::set_delegate(
-    RefillUnblindedTokensDelegate* delegate) {
-  delegate_ = delegate;
+RefillUnblindedTokens::~RefillUnblindedTokens() {
+  delegate_ = nullptr;
 }
 
 void RefillUnblindedTokens::MaybeRefill(const WalletInfo& wallet) {
@@ -86,7 +85,7 @@ void RefillUnblindedTokens::MaybeRefill(const WalletInfo& wallet) {
   wallet_ = wallet;
 
   const CatalogIssuersInfo catalog_issuers =
-      ConfirmationsState::Get()->get_catalog_issuers();
+      ConfirmationsState::Get()->GetCatalogIssuers();
   if (!catalog_issuers.IsValid()) {
     BLOG(0, "Failed to refill unblinded tokens due to missing catalog issuers");
 
@@ -136,14 +135,15 @@ void RefillUnblindedTokens::OnGetScheduledCaptcha(
     const std::string& captcha_id) {
   BLOG(1, "OnGetScheduledCaptcha");
 
-  if (captcha_id.empty()) {
-    RequestSignedTokens();
+  if (!captcha_id.empty()) {
+    if (delegate_) {
+      delegate_->OnCaptchaRequiredToRefillUnblindedTokens(captcha_id);
+    }
+
     return;
   }
 
-  if (delegate_) {
-    delegate_->OnCaptchaRequiredToRefillUnblindedTokens(captcha_id);
-  }
+  RequestSignedTokens();
 }
 
 void RefillUnblindedTokens::RequestSignedTokens() {
@@ -158,11 +158,11 @@ void RefillUnblindedTokens::RequestSignedTokens() {
   RequestSignedTokensUrlRequestBuilder url_request_builder(wallet_,
                                                            blinded_tokens_);
   mojom::UrlRequestPtr url_request = url_request_builder.Build();
-  BLOG(5, UrlRequestToString(url_request));
+  BLOG(6, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
-  auto callback = std::bind(&RefillUnblindedTokens::OnRequestSignedTokens, this,
-                            std::placeholders::_1);
+  const auto callback = std::bind(&RefillUnblindedTokens::OnRequestSignedTokens,
+                                  this, std::placeholders::_1);
   AdsClientHelper::Get()->UrlRequest(std::move(url_request), callback);
 }
 
@@ -197,7 +197,6 @@ void RefillUnblindedTokens::OnRequestSignedTokens(
   }
   nonce_ = *nonce;
 
-  // Get signed tokens
   GetSignedTokens();
 }
 
@@ -207,11 +206,11 @@ void RefillUnblindedTokens::GetSignedTokens() {
 
   GetSignedTokensUrlRequestBuilder url_request_builder(wallet_, nonce_);
   mojom::UrlRequestPtr url_request = url_request_builder.Build();
-  BLOG(5, UrlRequestToString(url_request));
+  BLOG(6, UrlRequestToString(url_request));
   BLOG(7, UrlRequestHeadersToString(url_request));
 
-  auto callback = std::bind(&RefillUnblindedTokens::OnGetSignedTokens, this,
-                            std::placeholders::_1);
+  const auto callback = std::bind(&RefillUnblindedTokens::OnGetSignedTokens,
+                                  this, std::placeholders::_1);
   AdsClientHelper::Get()->UrlRequest(std::move(url_request), callback);
 }
 

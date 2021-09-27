@@ -2,9 +2,12 @@ import * as React from 'react'
 
 import {
   WalletAccountType,
-  RPCTransactionType,
   AccountSettingsNavTypes,
-  UpdateAccountNamePayloadType
+  UpdateAccountNamePayloadType,
+  TransactionListInfo,
+  EthereumChain,
+  TokenInfo,
+  AssetPriceInfo
 } from '../../../../constants/types'
 import { reduceAddress } from '../../../../utils/reduce-address'
 import { copyToClipboard } from '../../../../utils/copy-to-clipboard'
@@ -35,8 +38,11 @@ import {
   WalletInfoLeftSide,
   QRCodeIcon,
   EditIcon,
-  SubviewSectionTitle
+  SubviewSectionTitle,
+  TransactionPlaceholderContainer
 } from './style'
+
+import { TransactionPlaceholderText } from '../portfolio/style'
 
 // Components
 import { BackButton, Tooltip } from '../../../shared'
@@ -50,15 +56,21 @@ import {
 
 export interface Props {
   accounts: WalletAccountType[]
-  transactions: (RPCTransactionType | undefined)[]
+  transactions: (TransactionListInfo | undefined)[]
   privateKey: string
+  selectedNetwork: EthereumChain
+  userVisibleTokensInfo: TokenInfo[]
+  transactionSpotPrices: AssetPriceInfo[]
+  selectedAccount: WalletAccountType | undefined
   onViewPrivateKey: (address: string, isDefault: boolean) => void
   onDoneViewingPrivateKey: () => void
   toggleNav: () => void
   onClickBackup: () => void
   onClickAddAccount: () => void
   onUpdateAccountName: (payload: UpdateAccountNamePayloadType) => { success: boolean }
-  onRemoveAccount: (address: string) => void
+  onRemoveAccount: (address: string, hardware: boolean) => void
+  onSelectAccount: (account: WalletAccountType) => void
+  goBack: () => void
 }
 
 function Accounts (props: Props) {
@@ -66,6 +78,12 @@ function Accounts (props: Props) {
     accounts,
     transactions,
     privateKey,
+    selectedNetwork,
+    transactionSpotPrices,
+    userVisibleTokensInfo,
+    selectedAccount,
+    goBack,
+    onSelectAccount,
     onViewPrivateKey,
     onDoneViewingPrivateKey,
     toggleNav,
@@ -87,26 +105,8 @@ function Accounts (props: Props) {
     return accounts.filter((account) => account.accountType === 'Trezor' || account.accountType === 'Ledger')
   }, [accounts])
 
-  const [selectedAccount, setSelectedAccount] = React.useState<WalletAccountType>()
   const [showEditModal, setShowEditModal] = React.useState<boolean>(false)
   const [editTab, setEditTab] = React.useState<AccountSettingsNavTypes>('details')
-
-  React.useMemo(() => {
-    if (selectedAccount) {
-      const updatedAccount = accounts.find((account) => account.id === selectedAccount.id)
-      setSelectedAccount(updatedAccount)
-    }
-  }, [accounts])
-
-  const goBack = () => {
-    setSelectedAccount(undefined)
-    toggleNav()
-  }
-
-  const onSelectAccount = (account: WalletAccountType) => {
-    setSelectedAccount(account)
-    toggleNav()
-  }
 
   const onCopyToClipboard = async () => {
     if (selectedAccount) {
@@ -131,15 +131,20 @@ function Accounts (props: Props) {
     setEditTab('details')
   }
 
-  const onTransactionMore = () => {
-    alert('Will show view Transaction options')
-  }
-
   const orb = React.useMemo(() => {
     if (selectedAccount) {
-      return create({ seed: selectedAccount.address, size: 8, scale: 16 }).toDataURL()
+      return create({ seed: selectedAccount.address.toLowerCase(), size: 8, scale: 16 }).toDataURL()
     }
   }, [selectedAccount])
+
+  const transactionList = React.useMemo(() => {
+    if (selectedAccount) {
+      const foundTransactions = transactions.find((account) => account?.account.address === selectedAccount.address)?.transactions ?? []
+      return foundTransactions
+    } else {
+      return []
+    }
+  }, [selectedAccount, transactions])
 
   return (
     <StyledWrapper>
@@ -231,19 +236,28 @@ function Accounts (props: Props) {
               fiatBalance={item.fiatBalance}
               symbol={item.asset.symbol}
               icon={item.asset.icon}
+              isVisible={item.asset.visible}
             />
           )}
           <SubviewSectionTitle>{locale.transactions}</SubviewSectionTitle>
           <SubDivider />
-          {transactions?.map((transaction) =>
-            <PortfolioTransactionItem
-              action={onTransactionMore}
-              key={transaction?.hash}
-              amount={transaction?.amount ? transaction.amount : 0}
-              from={transaction?.from ? transaction.from : ''}
-              to={transaction?.to ? transaction.to : ''}
-              ticker={selectedAccount.asset}
-            />
+          {transactionList.length !== 0 ? (
+            <>
+              {transactionList.map((transaction) =>
+                <PortfolioTransactionItem
+                  selectedNetwork={selectedNetwork}
+                  key={transaction?.id}
+                  transaction={transaction}
+                  account={selectedAccount}
+                  transactionSpotPrices={transactionSpotPrices}
+                  visibleTokens={userVisibleTokensInfo}
+                />
+              )}
+            </>
+          ) : (
+            <TransactionPlaceholderContainer>
+              <TransactionPlaceholderText>{locale.transactionPlaceholder}</TransactionPlaceholderText>
+            </TransactionPlaceholderContainer>
           )}
         </>
       )}

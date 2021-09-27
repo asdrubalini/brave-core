@@ -10,6 +10,7 @@
 #include "bat/ads/internal/frequency_capping/frequency_capping_unittest_util.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting_resource.h"
 #include "bat/ads/internal/unittest_base.h"
+#include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
 #include "bat/ads/internal/user_activity/user_activity.h"
 #include "net/http/http_status_code.h"
@@ -78,8 +79,8 @@ class BatAdsAdPriorityTest : public UnitTestBase {
     creative_ad_notification.creative_instance_id = base::GenerateGUID();
     creative_ad_notification.creative_set_id = base::GenerateGUID();
     creative_ad_notification.campaign_id = base::GenerateGUID();
-    creative_ad_notification.start_at_timestamp = DistantPastAsTimestamp();
-    creative_ad_notification.end_at_timestamp = DistantFutureAsTimestamp();
+    creative_ad_notification.start_at = DistantPast();
+    creative_ad_notification.end_at = DistantFuture();
     creative_ad_notification.daily_cap = 1;
     creative_ad_notification.advertiser_id = base::GenerateGUID();
     creative_ad_notification.priority = 1;

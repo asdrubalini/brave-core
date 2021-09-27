@@ -6,15 +6,16 @@
 #include "bat/ads/internal/database/tables/creative_ads_database_table.h"
 
 #include <algorithm>
-#include <functional>
 #include <utility>
 
 #include "base/check.h"
 #include "base/strings/stringprintf.h"
+#include "bat/ads/ads_client.h"
 #include "bat/ads/internal/ads_client_helper.h"
 #include "bat/ads/internal/database/database_statement_util.h"
 #include "bat/ads/internal/database/database_table_util.h"
 #include "bat/ads/internal/database/database_util.h"
+#include "bat/ads/internal/logging.h"
 
 namespace ads {
 namespace database {
@@ -46,14 +47,14 @@ void CreativeAds::InsertOrUpdate(mojom::DBTransaction* transaction,
 void CreativeAds::Delete(ResultCallback callback) {
   mojom::DBTransactionPtr transaction = mojom::DBTransaction::New();
 
-  util::Delete(transaction.get(), get_table_name());
+  util::Delete(transaction.get(), GetTableName());
 
   AdsClientHelper::Get()->RunDBTransaction(
       std::move(transaction),
       std::bind(&OnResultCallback, std::placeholders::_1, callback));
 }
 
-std::string CreativeAds::get_table_name() const {
+std::string CreativeAds::GetTableName() const {
   return kTableName;
 }
 
@@ -115,7 +116,7 @@ std::string CreativeAds::BuildInsertOrUpdateQuery(
       "value, "
       "split_test_group, "
       "target_url) VALUES %s",
-      get_table_name().c_str(),
+      GetTableName().c_str(),
       BuildBindingParameterPlaceholders(9, count).c_str());
 }
 
@@ -134,7 +135,7 @@ void CreativeAds::CreateTableV16(mojom::DBTransaction* transaction) {
       "value DOUBLE NOT NULL DEFAULT 0, "
       "split_test_group TEXT, "
       "target_url TEXT NOT NULL)",
-      get_table_name().c_str());
+      GetTableName().c_str());
 
   mojom::DBCommandPtr command = mojom::DBCommand::New();
   command->type = mojom::DBCommand::Type::EXECUTE;
@@ -146,7 +147,7 @@ void CreativeAds::CreateTableV16(mojom::DBTransaction* transaction) {
 void CreativeAds::MigrateToV16(mojom::DBTransaction* transaction) {
   DCHECK(transaction);
 
-  util::Drop(transaction, get_table_name());
+  util::Drop(transaction, GetTableName());
 
   CreateTableV16(transaction);
 }

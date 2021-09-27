@@ -8,7 +8,8 @@ import {
   WelcomePanel,
   SignPanel,
   AllowAddNetworkPanel,
-  ConfirmTransactionPanel
+  ConfirmTransactionPanel,
+  ConnectHardwareWalletPanel
 } from '../components/extension'
 import { AppList } from '../components/shared'
 import {
@@ -183,14 +184,14 @@ _AllowAddNetwork.story = {
   name: 'Allow Add Network'
 }
 
-export const _SignTransaction = () => {
+export const _SignData = () => {
 
   const onSign = () => {
-    alert('Signed Transaction')
+    alert('Signed Data')
   }
 
   const onCancel = () => {
-    alert('Canceled Signing Transaction')
+    alert('Canceled Signing Data')
   }
 
   return (
@@ -201,12 +202,13 @@ export const _SignTransaction = () => {
         message='To avoid digital cat burglars, sign below to authenticate with CryptoKitties.'
         onCancel={onCancel}
         onSign={onSign}
+        showWarning={true}
       />
     </StyledExtensionWrapperLonger>
   )
 }
 
-_SignTransaction.story = {
+_SignData.story = {
   name: 'Sign Transaction'
 }
 
@@ -408,6 +410,10 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
     alert('Will go to Wallet Settings')
   }
 
+  const onRestore = () => {
+    alert('Will navigate to full wallet restore page')
+  }
+
   return (
     <StyledExtensionWrapper>
       {walletLocked ? (
@@ -416,6 +422,7 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
           onSubmit={unlockWallet}
           disabled={inputValue === ''}
           onPasswordChanged={handlePasswordChanged}
+          onClickRestore={onRestore}
         />
       ) : (
         <>
@@ -495,6 +502,7 @@ export const _ConnectedPanel = (args: { locked: boolean }) => {
                         selectedAsset={selectedWyreAsset}
                         buyAmount={buyAmount}
                         selectedNetwork={selectedNetwork}
+                        networkList={[]}
                       />
                     }
                   </ScrollContainer>
@@ -535,4 +543,26 @@ export const _SetupWallet = () => {
 
 _SetupWallet.story = {
   name: 'Setup New Wallet'
+}
+
+export const _ConnectHardwareWallet = () => {
+
+  const onCancel = () => {
+    // Doesn't do anything in storybook
+  }
+
+  return (
+    <StyledExtensionWrapper>
+      <ConnectHardwareWalletPanel
+        walletName='Ledger 1'
+        isConnected={true}
+        onCancel={onCancel}
+        requestingConfirmation={true}
+      />
+    </StyledExtensionWrapper>
+  )
+}
+
+_ConnectHardwareWallet.story = {
+  name: 'Connect Hardware Wallet'
 }

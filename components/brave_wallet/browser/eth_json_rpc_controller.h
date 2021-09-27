@@ -27,8 +27,6 @@
 #include "mojo/public/cpp/bindings/remote_set.h"
 #include "url/gurl.h"
 
-class PrefRegistrySimple;
-
 namespace network {
 class SharedURLLoaderFactory;
 class SimpleURLLoader;
@@ -45,9 +43,6 @@ class EthJsonRpcController : public KeyedService,
       scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
       PrefService* prefs);
   ~EthJsonRpcController() override;
-
-  static void RegisterProfilePrefs(PrefRegistrySimple* registry);
-  static void ClearProfilePrefs(PrefService* prefs);
 
   struct EthereumChainRequest {
     EthereumChainRequest() {}
@@ -132,6 +127,20 @@ class EthJsonRpcController : public KeyedService,
 
   GURL GetBlockTrackerUrlFromNetwork(std::string chain_id);
 
+  using GetEstimateGasCallback =
+      base::OnceCallback<void(bool status, const std::string& result)>;
+  void GetEstimateGas(const std::string& from_address,
+                      const std::string& to_address,
+                      const std::string& gas,
+                      const std::string& gas_price,
+                      const std::string& value,
+                      const std::string& data,
+                      GetEstimateGasCallback callback);
+
+  using GetGasPriceCallback =
+      base::OnceCallback<void(bool status, const std::string& result)>;
+  void GetGasPrice(GetGasPriceCallback callback);
+
  private:
   void FireNetworkChanged();
   void FirePendingRequestCompleted(const std::string& chain_id,
@@ -186,6 +195,17 @@ class EthJsonRpcController : public KeyedService,
       int status,
       const std::string& body,
       const base::flat_map<std::string, std::string>& headers);
+
+  void OnGetEstimateGas(
+      GetEstimateGasCallback callback,
+      int status,
+      const std::string& body,
+      const base::flat_map<std::string, std::string>& headers);
+
+  void OnGetGasPrice(GetGasPriceCallback callback,
+                     int status,
+                     const std::string& body,
+                     const base::flat_map<std::string, std::string>& headers);
 
   api_request_helper::APIRequestHelper api_request_helper_;
   GURL network_url_;

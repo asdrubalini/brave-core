@@ -8,6 +8,7 @@
 
 #include <string>
 
+#include "base/observer_list.h"
 #include "bat/ads/internal/ads/inline_content_ads/inline_content_ad_observer.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
@@ -15,10 +16,9 @@ namespace ads {
 
 struct InlineContentAdInfo;
 
-class InlineContentAd : public InlineContentAdObserver {
+class InlineContentAd final : public InlineContentAdObserver {
  public:
   InlineContentAd();
-
   ~InlineContentAd() override;
 
   void AddObserver(InlineContentAdObserver* observer);

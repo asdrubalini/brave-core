@@ -23,26 +23,18 @@
 
 class PrefService;
 
-namespace user_prefs {
-class PrefRegistrySyncable;
-}
-
 namespace brave_wallet {
 
 class HDKeyring;
 class EthTransaction;
 class KeyringControllerUnitTest;
+class BraveWalletProviderImplUnitTest;
 
 // This class is not thread-safe and should have single owner
 class KeyringController : public KeyedService, public mojom::KeyringController {
  public:
   explicit KeyringController(PrefService* prefs);
   ~KeyringController() override;
-
-  static void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry);
-
-  static void RegisterProfilePrefsForMigration(
-      user_prefs::PrefRegistrySyncable* registry);
 
   static void MigrateObsoleteProfilePrefs(PrefService* prefs);
 
@@ -52,6 +44,10 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
   static const base::Value* GetPrefForKeyring(PrefService* prefs,
                                               const std::string& key,
                                               const std::string& id);
+  static base::Value* GetPrefForHardwareKeyringUpdate(PrefService* prefs);
+  static base::Value* GetPrefForKeyringUpdate(PrefService* prefs,
+                                              const std::string& key,
+                                              const std::string& id);
   // If keyring dicionary for id doesn't exist, it will be created.
   static void SetPrefForKeyring(PrefService* prefs,
                                 const std::string& key,
@@ -59,13 +55,20 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
                                 const std::string& id);
 
   // Account path will be used as key in kAccountMetas
-  static void SetAccountNameForKeyring(PrefService* prefs,
-                                       const std::string& account_path,
-                                       const std::string& name,
-                                       const std::string& id);
+  static void SetAccountMetaForKeyring(
+      PrefService* prefs,
+      const std::string& account_path,
+      const absl::optional<std::string> name,
+      const absl::optional<std::string> address,
+      const std::string& id);
+
   static std::string GetAccountNameForKeyring(PrefService* prefs,
                                               const std::string& account_path,
                                               const std::string& id);
+  static std::string GetAccountAddressForKeyring(
+      PrefService* prefs,
+      const std::string& account_path,
+      const std::string& id);
 
   static std::string GetAccountPathByIndex(size_t index);
 
@@ -112,6 +115,10 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
                              const std::string& password,
                              const std::string& json,
                              ImportAccountCallback callback) override;
+  void AddHardwareAccounts(
+      std::vector<mojom::HardwareWalletAccountPtr> info) override;
+  void GetHardwareAccounts(GetHardwareAccountsCallback callback) override;
+  void RemoveHardwareAccount(const std::string& address) override;
   void GetPrivateKeyForImportedAccount(
       const std::string& address,
       GetPrivateKeyForImportedAccountCallback callback) override;
@@ -170,8 +177,10 @@ class KeyringController : public KeyedService, public mojom::KeyringController {
   FRIEND_TEST_ALL_PREFIXES(KeyringControllerUnitTest,
                            GetPrivateKeyForDefaultKeyringAccount);
   FRIEND_TEST_ALL_PREFIXES(KeyringControllerUnitTest,
-                           SetDefaultKeyringDerivedAccountName);
+                           SetDefaultKeyringDerivedAccountMeta);
   FRIEND_TEST_ALL_PREFIXES(KeyringControllerUnitTest, RestoreLegacyBraveWallet);
+  friend class BraveWalletProviderImplUnitTest;
+  friend class EthTxControllerUnitTest;
 
   void AddAccountForDefaultKeyring(const std::string& account_name);
 

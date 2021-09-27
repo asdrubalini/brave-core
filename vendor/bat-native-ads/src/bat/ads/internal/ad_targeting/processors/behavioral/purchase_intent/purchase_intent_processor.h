@@ -10,7 +10,7 @@
 #include <string>
 
 #include "bat/ads/internal/ad_targeting/processors/processor.h"
-#include "bat/ads/internal/segments/segments_alias.h"
+#include "bat/ads/internal/segments/segments_aliases.h"
 #include "url/gurl.h"
 
 namespace ads {
@@ -26,10 +26,9 @@ struct PurchaseIntentSiteInfo;
 
 namespace processor {
 
-class PurchaseIntent : public Processor<GURL> {
+class PurchaseIntent final : public Processor<GURL> {
  public:
   explicit PurchaseIntent(resource::PurchaseIntent* resource);
-
   ~PurchaseIntent() override;
 
   void Process(const GURL& url) override;

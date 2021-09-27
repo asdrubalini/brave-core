@@ -8,7 +8,6 @@
 
 #include <string>
 
-#include "bat/ads/ad_info.h"
 #include "bat/ads/internal/bundle/creative_ad_info.h"
 #include "bat/ads/internal/frequency_capping/exclusion_rules/exclusion_rule.h"
 #include "bat/ads/internal/frequency_capping/frequency_capping_aliases.h"
@@ -19,11 +18,10 @@ namespace resource {
 class AntiTargeting;
 }  // namespace resource
 
-class AntiTargetingFrequencyCap : public ExclusionRule<CreativeAdInfo> {
+class AntiTargetingFrequencyCap final : public ExclusionRule<CreativeAdInfo> {
  public:
   AntiTargetingFrequencyCap(resource::AntiTargeting* anti_targeting_resource,
                             const BrowsingHistoryList& browsing_history);
-
   ~AntiTargetingFrequencyCap() override;
 
   AntiTargetingFrequencyCap(const AntiTargetingFrequencyCap&) = delete;
@@ -32,7 +30,7 @@ class AntiTargetingFrequencyCap : public ExclusionRule<CreativeAdInfo> {
 
   bool ShouldExclude(const CreativeAdInfo& ad) override;
 
-  std::string get_last_message() const override;
+  std::string GetLastMessage() const override;
 
  private:
   resource::AntiTargeting* anti_targeting_resource_;  // NOT OWNED

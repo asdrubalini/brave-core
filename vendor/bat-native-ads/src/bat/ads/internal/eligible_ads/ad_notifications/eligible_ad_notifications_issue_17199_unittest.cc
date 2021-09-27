@@ -10,6 +10,7 @@
 #include "bat/ads/internal/ad_targeting/ad_targeting_user_model_info.h"
 #include "bat/ads/internal/resources/frequency_capping/anti_targeting_resource.h"
 #include "bat/ads/internal/unittest_base.h"
+#include "bat/ads/internal/unittest_time_util.h"
 #include "bat/ads/internal/unittest_util.h"
 
 // npm run test -- brave_unit_tests --filter=BatAds*
@@ -35,7 +36,7 @@ class BatAdsEligibleAdNotificationsIssue17199Test : public UnitTestBase {
 
 TEST_F(BatAdsEligibleAdNotificationsIssue17199Test, GetEligibleAds) {
   // Arrange
-  AdvanceClock(TimeFromDateString("4 July 2021"));
+  AdvanceClock(TimeFromUTCString("4 July 2021"));
 
   // Act
   ad_targeting::geographic::SubdivisionTargeting subdivision_targeting;

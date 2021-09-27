@@ -223,6 +223,9 @@ TEST_F(EthTxStateManagerUnitTest, TxOperations) {
     ASSERT_NE(meta_fetched2, nullptr);
     EXPECT_EQ(meta_fetched2->id, "002");
     EXPECT_EQ(meta_fetched2->tx_hash, "0xabff");
+
+    auto meta_fetched3 = tx_state_manager.GetTx("");
+    EXPECT_EQ(meta_fetched3, nullptr);
   }
 
   // Delete
@@ -351,7 +354,9 @@ TEST_F(EthTxStateManagerUnitTest, SwitchNetwork) {
   ASSERT_TRUE(ropsten_dict);
   EXPECT_EQ(ropsten_dict->DictSize(), 1u);
   EXPECT_TRUE(ropsten_dict->FindKey("001"));
-  const auto* localhost_dict = dict->FindKey("http://localhost:8545/");
+  auto localhost_url_spec =
+      brave_wallet::GetNetworkURL(GetPrefs(), mojom::kLocalhostChainId).spec();
+  const auto* localhost_dict = dict->FindKey(localhost_url_spec);
   ASSERT_TRUE(localhost_dict);
   EXPECT_EQ(localhost_dict->DictSize(), 1u);
   EXPECT_TRUE(localhost_dict->FindKey("001"));

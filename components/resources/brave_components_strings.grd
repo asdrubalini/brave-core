@@ -618,6 +618,7 @@
       <message name="IDS_BRAVE_REWARDS_TIP_CUSTOM_TIP_TEXT" desc="">You are about to tip</message>
       <message name="IDS_BRAVE_REWARDS_TIP_ERROR_HAS_OCCURRED" desc="">A wild bug has appeared</message>
       <message name="IDS_BRAVE_REWARDS_TIP_ERROR_SERVER_CONNECTION" desc="">Server connection error</message>
+      <message name="IDS_BRAVE_REWARDS_TIP_ERROR_TIP_FAILED" desc="">There was a problem sending your tip.</message>
       <message name="IDS_BRAVE_REWARDS_TIP_ERROR_TRY_AGAIN" desc="">Please close and reopen the tipping banner to try again.</message>
       <message name="IDS_BRAVE_REWARDS_TIP_EXAMPLE_TIP_AMOUNT" desc="">e.g. <ph name="AMOUNT">$1<ex>12.75</ex></ph></message>
       <message name="IDS_BRAVE_REWARDS_TIP_MINIMUM_TIP_AMOUNT" desc="">Minimum tip amount is <ph name="AMOUNT">$1<ex>0.25</ex></ph> <ph name="CURRENCY">$2<ex>BAT</ex></ph></message>
@@ -733,6 +734,7 @@
       <message name="IDS_BRAVE_UI_DO_MONTHLY" desc="">Set monthly contribution</message>
       <message name="IDS_BRAVE_UI_EARNINGS_ADS" desc="">Earnings from Ads</message>
       <message name="IDS_BRAVE_UI_EARNINGS_CLAIM_DEFAULT" desc="">Your rewards from Ads are here!</message>
+      <message name="IDS_BRAVE_UI_EARNINGS_VIEW_DEPOSIT_HISTORY" desc="">View deposit history</message>
       <message name="IDS_BRAVE_UI_ENABLE_TIPS" desc="">Enable Tips</message>
       <message name="IDS_BRAVE_UI_EXCLUDE_SITE" desc="">Exclude this site</message>
       <message name="IDS_BRAVE_UI_EXCLUDED_SITES" desc="">Total number of sites you excluded from Auto-Contribute:</message>
@@ -850,7 +852,7 @@
       <message name="IDS_BRAVE_UI_REWARDS_CREATING_TEXT" desc="">Creating wallet</message>
       <message name="IDS_BRAVE_UI_SITE_BANNER_NOTICE_NOTE" desc="">NOTE:</message>
       <message name="IDS_BRAVE_UI_SITE_BANNER_NOTICE_TEXT" desc="">This creator is currently not configured to receive tips from your wallet. Any tip you make will remain pending in your wallet and retry automatically for 90 days.</message>
-      <message name="IDS_BRAVE_UI_SITE_BANNER_CONNECTED_TEXT" desc="Text shown for connected publishers that are not fully verified on site banner">This Brave Verified Creator has not yet configured their account to receive contributions from Brave users. Your browser will keep trying to contribute until they verify, or until 90 days have passed.</message>
+      <message name="IDS_BRAVE_UI_SITE_BANNER_NOTICE_NOT_REGISTERED" desc="">This creator is not signed up yet. Any tip you make will remain pending in your wallet and retry automatically for 90 days.</message>
       <message name="IDS_BRAVE_UI_SITE_UNVERIFIED_TEXT_MORE" desc="">Learn more.</message>
       <message name="IDS_BRAVE_UI_PENDING_CONTRIBUTIONS" desc="Title of pending contribution modal">Pending contributions</message>
       <message name="IDS_BRAVE_UI_PENDING_TYPE_RECURRING" desc="Name of recurring tip type">Monthly Contribution</message>
@@ -878,8 +880,8 @@
       <message name="IDS_BRAVE_UI_WALLET_CONNECTED" desc="">Connected</message>
 
       <message name="IDS_BRAVE_UI_GEMINI_PROMO_TITLE" desc="">Link Rewards to Gemini!</message>
-      <message name="IDS_BRAVE_UI_GEMINI_PROMO_INFO" desc="">Gemini lets you easily trade, store, and earn 3.49% APY* on your BAT. New Gemini users who link receive 5 free BAT!</message>
-      <message name="IDS_BRAVE_UI_GEMINI_PROMO_DISCLAIMER" desc="">* Gemini Earn APY as of Aug 15, 2021</message>
+      <message name="IDS_BRAVE_UI_GEMINI_PROMO_INFO" desc="">Gemini lets you easily trade, store, and earn 3.49% APY on your BAT. Verify and link your Brave Rewards wallet with Gemini now!</message>
+      <message name="IDS_BRAVE_UI_GEMINI_PROMO_DISCLAIMER" desc="">* Gemini Earn APY as of Sept 15, 2021</message>
 
       <message name="IDS_BRAVE_UI_TAP_NETWORK_TITLE" desc="">Redeem BAT for Gift Cards</message>
       <message name="IDS_BRAVE_UI_TAP_NETWORK_INFO" desc="">With TAP Network, you can redeem your BAT for popular name-brand gift cards.</message>
@@ -989,8 +991,8 @@
       <message name="IDS_BINANCE_WIDGET_AUTH_INVALID" desc="">Session Expired</message>
       <message name="IDS_BINANCE_WIDGET_AUTH_INVALID_COPY" desc="">Your Binance access token has expired. Please reconnect to continue using the widget.</message>
 
-      <message name="IDS_GEMINI_WIDGET_CONNECT_TITLE" desc="">Purchase and trade with Gemini</message>
-      <message name="IDS_GEMINI_WIDGET_CONNECT_COPY" desc="">Enable a Gemini connection to view your Gemini account balance and trade crypto.</message>
+      <message name="IDS_GEMINI_WIDGET_CONNECT_TITLE" desc="">Buy crypto with Gemini</message>
+      <message name="IDS_GEMINI_WIDGET_CONNECT_COPY" desc="">Connect to Gemini to view your balance and trade 45+ cryptos.</message>
       <message name="IDS_GEMINI_WIDGET_CONNECT_BUTTON" desc="">Connect to Gemini</message>
       <message name="IDS_GEMINI_WIDGET_AUTH_INVALID_COPY" desc="">Your Gemini access token has expired and could not be refreshed. Please reconnect.</message>
       <message name="IDS_GEMINI_WIDGET_FAILED_TRADE" desc="">Unable to perform trade</message>

@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "base/scoped_observation.h"
-#include "brave/components/brave_vpn/brave_vpn.mojom-shared.h"
 #include "brave/components/brave_vpn/brave_vpn.mojom.h"
 #include "brave/components/brave_vpn/brave_vpn_connection_info.h"
 #include "brave/components/brave_vpn/brave_vpn_os_connection_api.h"
@@ -23,6 +22,8 @@ namespace base {
 class Value;
 }  // namespace base
 
+class PrefService;
+
 typedef brave_vpn::mojom::ConnectionState ConnectionState;
 
 class BraveVpnServiceDesktop
@@ -30,8 +31,9 @@ class BraveVpnServiceDesktop
       public brave_vpn::BraveVPNOSConnectionAPI::Observer,
       public brave_vpn::mojom::ServiceHandler {
  public:
-  explicit BraveVpnServiceDesktop(
-      scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory);
+  BraveVpnServiceDesktop(
+      scoped_refptr<network::SharedURLLoaderFactory> url_loader_factory,
+      PrefService* prefs);
   ~BraveVpnServiceDesktop() override;
 
   BraveVpnServiceDesktop(const BraveVpnServiceDesktop&) = delete;
@@ -57,10 +59,14 @@ class BraveVpnServiceDesktop
   void Disconnect() override;
   void CreateVPNConnection() override;
   void GetAllRegions(GetAllRegionsCallback callback) override;
+  void GetDeviceRegion(GetDeviceRegionCallback callback) override;
+  void GetSelectedRegion(GetSelectedRegionCallback callback) override;
+  void SetSelectedRegion(brave_vpn::mojom::RegionPtr region) override;
 
  private:
   friend class BraveAppMenuBrowserTest;
   friend class BraveBrowserCommandControllerTest;
+  FRIEND_TEST_ALL_PREFIXES(BraveVPNTest, RegionDataTest);
 
   // BraveVpnService overrides:
   void Shutdown() override;
@@ -74,16 +80,26 @@ class BraveVpnServiceDesktop
   void OnDisconnected(const std::string& name) override;
   void OnIsDisconnecting(const std::string& name) override;
 
+  brave_vpn::BraveVPNConnectionInfo GetConnectionInfo();
+  void FetchRegionData();
+  void OnFetchRegionList(const std::string& region_list, bool success);
+  void ParseAndCacheRegionList(base::Value region_value);
+  void OnFetchTimezones(const std::string& timezones_list, bool success);
+  void ParseAndCacheDefaultRegionName(base::Value timezons_value);
+  void SetDeviceRegion(const std::string& name);
+  void SetFallbackDeviceRegion();
+  std::string GetCurrentTimeZone();
+
+  void set_test_timezone(const std::string& timezone) {
+    test_timezone_ = timezone;
+  }
   void set_is_purchased_user_for_test(bool purchased) {
     is_purchased_user_ = purchased;
   }
 
-  brave_vpn::BraveVPNConnectionInfo GetConnectionInfo();
-  void FetchRegionList();
-  void OnFetchRegionList(const std::string& region_list, bool success);
-  void ParseAndCacheRegionList(base::Value region_value);
-
+  PrefService* prefs_ = nullptr;
   std::vector<brave_vpn::mojom::Region> regions_;
+  brave_vpn::mojom::Region device_region_;
   ConnectionState state_ = ConnectionState::DISCONNECTED;
   bool is_purchased_user_ = false;
   base::ScopedObservation<brave_vpn::BraveVPNOSConnectionAPI,
@@ -91,6 +107,7 @@ class BraveVpnServiceDesktop
       observed_{this};
   mojo::ReceiverSet<brave_vpn::mojom::ServiceHandler> receivers_;
   mojo::RemoteSet<brave_vpn::mojom::ServiceObserver> observers_;
+  std::string test_timezone_;
 };
 
 #endif  // BRAVE_COMPONENTS_BRAVE_VPN_BRAVE_VPN_SERVICE_DESKTOP_H_

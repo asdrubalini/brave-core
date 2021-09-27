@@ -10,8 +10,9 @@ import {
 } from '../../../constants/types'
 import { reduceAddress } from '../../../utils/reduce-address'
 import { reduceNetworkDisplayName } from '../../../utils/network-utils'
+import { reduceAccountDisplayName } from '../../../utils/reduce-account-name'
 import locale from '../../../constants/locale'
-import { formatBalance, formatFiatBalance } from '../../../utils/format-balances'
+import { formatBalance, formatGasFee, formatFiatGasFee, formatFiatBalance } from '../../../utils/format-balances'
 import { NavButton, PanelTab, TransactionDetailBox } from '../'
 
 // Styled Components
@@ -91,6 +92,7 @@ function ConfirmTransactionPanel (props: Props) {
 
   const getTransactionPriceDisplayInfo = (
     gasPrice: string,
+    gasLimit: string,
     network: EthereumChain,
     networkPrice: string,
     sendValue: string,
@@ -99,8 +101,8 @@ function ConfirmTransactionPanel (props: Props) {
   ) => {
     const sendAmount = formatBalance(sendValue, sendDecimals)
     const sendFiatAmount = formatFiatBalance(sendValue, sendDecimals, sendPrice)
-    const gasAmount = formatBalance(gasPrice, network.decimals)
-    const gasFiatAmount = formatFiatBalance(gasPrice, network.decimals, networkPrice)
+    const gasAmount = formatGasFee(gasPrice, gasLimit, network.decimals)
+    const gasFiatAmount = formatFiatGasFee(gasAmount, networkPrice)
     const grandTotalFiatAmount = Number(sendFiatAmount) + Number(gasFiatAmount)
     return {
       sendAmount,
@@ -114,7 +116,7 @@ function ConfirmTransactionPanel (props: Props) {
   const transaction = React.useMemo(() => {
     const { txType, txArgs } = transactionInfo
     const { baseData } = transactionInfo.txData
-    const { gasPrice, value, data, to } = baseData
+    const { gasPrice, gasLimit, value, data, to } = baseData
     const networkPrice = findSpotPrice(selectedNetwork.symbol)?.price ?? ''
     const ERC20Token = findTokenInfo(to)
     const ERC20TokenDecimals = ERC20Token?.decimals ?? 18
@@ -123,6 +125,7 @@ function ConfirmTransactionPanel (props: Props) {
     if (txType === TransactionType.ERC20Transfer || txType === TransactionType.ERC20Approve) {
       const priceInfo = getTransactionPriceDisplayInfo(
         gasPrice,
+        gasLimit,
         selectedNetwork,
         networkPrice,
         txArgs[1],
@@ -138,6 +141,7 @@ function ConfirmTransactionPanel (props: Props) {
     } else {
       const priceInfo = getTransactionPriceDisplayInfo(
         gasPrice,
+        gasLimit,
         selectedNetwork,
         networkPrice,
         value,
@@ -162,11 +166,11 @@ function ConfirmTransactionPanel (props: Props) {
   }
 
   const fromOrb = React.useMemo(() => {
-    return create({ seed: transactionInfo.fromAddress, size: 8, scale: 16 }).toDataURL()
+    return create({ seed: transactionInfo.fromAddress.toLowerCase(), size: 8, scale: 16 }).toDataURL()
   }, [transactionInfo])
 
   const toOrb = React.useMemo(() => {
-    return create({ seed: transaction.sendTo, size: 8, scale: 10 }).toDataURL()
+    return create({ seed: transaction.sendTo.toLowerCase(), size: 8, scale: 10 }).toDataURL()
   }, [transactionInfo])
 
   return (
@@ -195,7 +199,7 @@ function ConfirmTransactionPanel (props: Props) {
             <ToCircle orb={toOrb} />
           </AccountCircleWrapper>
           <FromToRow>
-            <AccountNameText>{findAccountName(transactionInfo.fromAddress)}</AccountNameText>
+            <AccountNameText>{reduceAccountDisplayName(findAccountName(transactionInfo.fromAddress) ?? '', 11)}</AccountNameText>
             <ArrowIcon />
             <AccountNameText>{reduceAddress(transaction.sendTo)}</AccountNameText>
           </FromToRow>

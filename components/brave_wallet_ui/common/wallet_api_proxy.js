@@ -3,13 +3,24 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this file,
 // you can obtain one at http://mozilla.org/MPL/2.0/.
 
-import 'chrome://resources/mojo/mojo/public/js/mojo_bindings_lite.js'
-import 'chrome://resources/mojo/url/mojom/url.mojom-lite.js'
-import 'chrome://resources/mojo/mojo/public/mojom/base/time.mojom-lite.js';
-import 'chrome://resources/mojo/brave/components/brave_wallet/common/brave_wallet.mojom-lite.js'
-import * as WalletActions from '../common/actions/wallet_actions'
-
 import { addSingletonGetter } from 'chrome://resources/js/cr.m.js'
+import 'gen/mojo/public/js/mojo_bindings_lite.js'
+import 'gen/url/mojom/url.mojom-lite.js'
+import 'gen/mojo/public/mojom/base/time.mojom-lite.js';
+import 'gen/brave/components/brave_wallet/common/brave_wallet.mojom-lite.js'
+import * as WalletActions from '../common/actions/wallet_actions'
+import LedgerBridgeKeyring from '../common/ledgerjs/eth_ledger_bridge_keyring'
+import {
+  kLedgerHardwareVendor
+} from '../constants/types'
+
+// TODO(petemill): Convert this module to Typescript, and import
+// es-module versions of mojom bindings, e.g.
+// import * as BraveWallet from 'gen/brave/components/brave_wallet/common/brave_wallet.mojom.m.js'
+// // Re-export types for others (can export any extra types and utility functions too)
+// export * from 'gen/brave/components/brave_wallet/common/brave_wallet.mojom.m.js'
+// ...
+// this.walletHandler = BraveWallet.WalletHandler.getRemote()
 
 export default class WalletApiProxy {
   constructor() {
@@ -27,6 +38,9 @@ export default class WalletApiProxy {
     this.ercTokenRegistry = new braveWallet.mojom.ERCTokenRegistryRemote();
     /** @type {!braveWallet.mojom.EthTxControllerRemote} */
     this.ethTxController = new braveWallet.mojom.EthTxControllerRemote();
+    /** @type {!braveWallet.mojom.BraveWalletServiceRemote} */
+    this.braveWalletService = new braveWallet.mojom.BraveWalletServiceRemote();
+    this.ledgerHardwareKeyring = new LedgerBridgeKeyring();
   }
 
   addEthJsonRpcControllerObserver(store) {
@@ -49,6 +63,13 @@ export default class WalletApiProxy {
     txData.value = value
     txData.data = data
     return txData
+  }
+
+  getKeyringsByType(type) {
+    if (type == kLedgerHardwareVendor) {
+      return this.ledgerHardwareKeyring;
+    }
+    return this.keyringController;
   }
 
   addKeyringControllerObserver(store) {
@@ -79,6 +100,9 @@ export default class WalletApiProxy {
     const ethTxControllerObserverReceiver = new braveWallet.mojom.EthTxControllerObserverReceiver({
       onNewUnapprovedTx: function (txInfo) {
         store.dispatch(WalletActions.newUnapprovedTxAdded({txInfo}))
+      },
+      onUnapprovedTxUpdated: function (txInfo) {
+        store.dispatch(WalletActions.unapprovedTxUpdated({txInfo}))
       },
       onTransactionStatusChanged: function (txInfo) {
         store.dispatch(WalletActions.transactionStatusChanged({txInfo}))

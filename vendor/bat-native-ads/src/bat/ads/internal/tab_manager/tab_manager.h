@@ -11,14 +11,17 @@
 #include <string>
 
 #include "bat/ads/internal/tab_manager/tab_info.h"
-#include "third_party/abseil-cpp/absl/types/optional.h"
+
+namespace absl {
+template <typename T>
+class optional;
+}  // namespace absl
 
 namespace ads {
 
-class TabManager {
+class TabManager final {
  public:
   TabManager();
-
   ~TabManager();
 
   TabManager(const TabManager&) = delete;

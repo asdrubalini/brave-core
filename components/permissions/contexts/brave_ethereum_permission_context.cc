@@ -47,7 +47,10 @@ BraveEthereumPermissionContext::BraveEthereumPermissionContext(
 BraveEthereumPermissionContext::~BraveEthereumPermissionContext() = default;
 
 bool BraveEthereumPermissionContext::IsRestrictedToSecureOrigins() const {
-  return true;
+  // For parity with Crypto Wallets and MM we should allow a permission prompt
+  // to be shown for HTTP sites. Developers often use localhost for development
+  // for example.
+  return false;
 }
 
 void BraveEthereumPermissionContext::RequestPermission(
@@ -205,12 +208,12 @@ void BraveEthereumPermissionContext::GetAllowedAccounts(
     GURL sub_request_origin;
     bool success =
         brave_wallet::GetSubRequestOrigin(origin, address, &sub_request_origin);
-    DCHECK(success);
-
-    PermissionResult result = permission_manager->GetPermissionStatusForFrame(
-        ContentSettingsType::BRAVE_ETHEREUM, rfh, sub_request_origin);
-    if (result.content_setting == CONTENT_SETTING_ALLOW) {
-      allowed_accounts.push_back(address);
+    if (success) {
+      PermissionResult result = permission_manager->GetPermissionStatusForFrame(
+          ContentSettingsType::BRAVE_ETHEREUM, rfh, sub_request_origin);
+      if (result.content_setting == CONTENT_SETTING_ALLOW) {
+        allowed_accounts.push_back(address);
+      }
     }
   }
 

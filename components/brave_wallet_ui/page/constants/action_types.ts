@@ -2,11 +2,14 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this file,
 // you can obtain one at http://mozilla.org/MPL/2.0/.
+
 import {
   GetPriceHistoryReturnObjectInfo,
   TokenInfo,
   AssetPriceInfo,
-  AssetPriceTimeframe
+  AssetPriceTimeframe,
+  AccountAssetOptionType,
+  SlippagePresetObjectType
 } from '../../constants/types'
 
 export type CreateWalletPayloadType = {
@@ -29,6 +32,10 @@ export type ImportAccountFromJsonPayloadType = {
 }
 
 export type RemoveImportedAccountPayloadType = {
+  address: string
+}
+
+export type RemoveHardwareAccountPayloadType = {
   address: string
 }
 
@@ -65,4 +72,20 @@ export type SelectAssetPayloadType = {
   usdPriceInfo: AssetPriceInfo | undefined,
   btcPriceInfo: AssetPriceInfo | undefined,
   timeFrame: AssetPriceTimeframe
+}
+
+export type SwapParamsPayloadType = {
+  fromAsset: AccountAssetOptionType,
+  toAsset: AccountAssetOptionType,
+  fromAssetAmount?: string,
+  toAssetAmount?: string,
+  slippageTolerance: SlippagePresetObjectType,
+  accountAddress: string,
+  networkChainId: string,
+  full: boolean
+}
+
+export type ImportFromExternalWalletPayloadType = {
+  password: string,
+  newPassword: string
 }

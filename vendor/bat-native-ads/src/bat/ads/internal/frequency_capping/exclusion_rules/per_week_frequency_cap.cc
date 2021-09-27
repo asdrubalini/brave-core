@@ -5,7 +5,6 @@
 
 #include "bat/ads/internal/frequency_capping/exclusion_rules/per_week_frequency_cap.h"
 
-#include <cstdint>
 #include <deque>
 
 #include "base/strings/stringprintf.h"
@@ -35,7 +34,7 @@ bool PerWeekFrequencyCap::ShouldExclude(const CreativeAdInfo& ad) {
   return false;
 }
 
-std::string PerWeekFrequencyCap::get_last_message() const {
+std::string PerWeekFrequencyCap::GetLastMessage() const {
   return last_message_;
 }
 
@@ -45,11 +44,10 @@ bool PerWeekFrequencyCap::DoesRespectCap(const AdEventList& ad_events,
     return true;
   }
 
-  const std::deque<uint64_t> history =
-      GetTimestampHistoryForAdEvents(ad_events);
+  const std::deque<base::Time> history = GetHistoryForAdEvents(ad_events);
 
-  const uint64_t time_constraint =
-      7 * (base::Time::kSecondsPerHour * base::Time::kHoursPerDay);
+  const base::TimeDelta time_constraint = base::TimeDelta::FromSeconds(
+      7 * (base::Time::kSecondsPerHour * base::Time::kHoursPerDay));
 
   return DoesHistoryRespectCapForRollingTimeConstraint(history, time_constraint,
                                                        ad.per_week);

@@ -6,25 +6,22 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_AD_EVENTS_DATABASE_TABLE_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_AD_EVENTS_DATABASE_TABLE_H_
 
-#include <functional>
 #include <string>
 
-#include "bat/ads/ads_client.h"
-#include "bat/ads/internal/ad_events/ad_event_info.h"
+#include "bat/ads/ads_client_aliases.h"
+#include "bat/ads/internal/ad_events/ad_event_info_aliases.h"
 #include "bat/ads/internal/database/database_table.h"
+#include "bat/ads/internal/database/tables/ad_events_database_table_aliases.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
 
-using GetAdEventsCallback = std::function<void(const bool, const AdEventList&)>;
-
 namespace database {
 namespace table {
 
-class AdEvents : public Table {
+class AdEvents final : public Table {
  public:
   AdEvents();
-
   ~AdEvents() override;
 
   void LogEvent(const AdEventInfo& ad_event, ResultCallback callback);
@@ -36,7 +33,7 @@ class AdEvents : public Table {
   void PurgeExpired(ResultCallback callback);
   void PurgeOrphaned(const mojom::AdType ad_type, ResultCallback callback);
 
-  std::string get_table_name() const override;
+  std::string GetTableName() const override;
 
   void Migrate(mojom::DBTransaction* transaction,
                const int to_version) override;

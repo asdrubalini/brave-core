@@ -11,8 +11,9 @@
 #include <string>
 #include <vector>
 
-#include "base/time/time.h"
 #include "bat/ads/ads.h"
+#include "bat/ads/ads_history_filter_types.h"
+#include "bat/ads/ads_history_sort_types.h"
 #include "bat/ads/internal/account/account_observer.h"
 #include "bat/ads/internal/ad_server/ad_server_observer.h"
 #include "bat/ads/internal/ad_serving/ad_notifications/ad_notification_serving_observer.h"
@@ -24,6 +25,10 @@
 #include "bat/ads/internal/ads/promoted_content_ads/promoted_content_ad_observer.h"
 #include "bat/ads/internal/conversions/conversions_observer.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
+
+namespace base {
+class Time;
+}  // namespace base
 
 namespace ads {
 
@@ -69,7 +74,6 @@ class TokenGeneratorInterface;
 class Account;
 class AdDiagnostics;
 class AdNotification;
-class AdNotificationServing;
 class AdNotifications;
 class AdServer;
 class AdTransfer;
@@ -77,10 +81,8 @@ class AdsClientHelper;
 class BrowserManager;
 class Catalog;
 class Client;
-class ConfirmationsState;
 class Conversions;
 class InlineContentAd;
-class InlineContentAdServing;
 class NewTabPageAd;
 class PromotedContentAd;
 class TabManager;
@@ -92,31 +94,31 @@ struct ConversionQueueItemInfo;
 struct InlineContentAdInfo;
 struct NewTabPageAdInfo;
 struct PromotedContentAdInfo;
+struct WalletInfo;
 
-class AdsImpl : public Ads,
-                public AccountObserver,
-                public AdNotificationObserver,
-                public AdNotificationServingObserver,
-                public AdServerObserver,
-                public AdTransferObserver,
-                public InlineContentAdObserver,
-                public InlineContentAdServingObserver,
-                public ConversionsObserver,
-                public NewTabPageAdObserver,
-                public PromotedContentAdObserver {
+class AdsImpl final : public Ads,
+                      public AccountObserver,
+                      public AdNotificationObserver,
+                      public AdNotificationServingObserver,
+                      public AdServerObserver,
+                      public AdTransferObserver,
+                      public InlineContentAdObserver,
+                      public InlineContentAdServingObserver,
+                      public ConversionsObserver,
+                      public NewTabPageAdObserver,
+                      public PromotedContentAdObserver {
  public:
   explicit AdsImpl(AdsClient* ads_client);
-
   ~AdsImpl() override;
 
   AdsImpl(const AdsImpl&) = delete;
   AdsImpl& operator=(const AdsImpl&) = delete;
 
-  void set_for_testing(privacy::TokenGeneratorInterface* token_generator);
+  void SetForTesting(privacy::TokenGeneratorInterface* token_generator);
 
   bool IsInitialized() const;
 
-  // Ads implementation
+  // Ads:
   void Initialize(InitializeCallback callback) override;
 
   void Shutdown(ShutdownCallback callback) override;
@@ -186,29 +188,29 @@ class AdsImpl : public Ads,
 
   void ReconcileAdRewards() override;
 
-  AdsHistoryInfo GetAdsHistory(const AdsHistoryInfo::FilterType filter_type,
-                               const AdsHistoryInfo::SortType sort_type,
-                               const uint64_t from_timestamp,
-                               const uint64_t to_timestamp) override;
+  AdsHistoryInfo GetAdsHistory(const AdsHistoryFilterType filter_type,
+                               const AdsHistorySortType sort_type,
+                               const double from_timestamp,
+                               const double to_timestamp) override;
 
   void GetAccountStatement(GetAccountStatementCallback callback) override;
 
   void GetAdDiagnostics(GetAdDiagnosticsCallback callback) override;
 
-  AdContentInfo::LikeAction ToggleAdThumbUp(
+  AdContentActionType ToggleAdThumbUp(
       const std::string& creative_instance_id,
       const std::string& creative_set_id,
-      const AdContentInfo::LikeAction& action) override;
-  AdContentInfo::LikeAction ToggleAdThumbDown(
+      const AdContentActionType& action) override;
+  AdContentActionType ToggleAdThumbDown(
       const std::string& creative_instance_id,
       const std::string& creative_set_id,
-      const AdContentInfo::LikeAction& action) override;
-  CategoryContentInfo::OptAction ToggleAdOptInAction(
+      const AdContentActionType& action) override;
+  CategoryContentActionType ToggleAdOptInAction(
       const std::string& category,
-      const CategoryContentInfo::OptAction& action) override;
-  CategoryContentInfo::OptAction ToggleAdOptOutAction(
+      const CategoryContentActionType& action) override;
+  CategoryContentActionType ToggleAdOptOutAction(
       const std::string& category,
-      const CategoryContentInfo::OptAction& action) override;
+      const CategoryContentActionType& action) override;
   bool ToggleSaveAd(const std::string& creative_instance_id,
                     const std::string& creative_set_id,
                     const bool saved) override;
@@ -275,19 +277,19 @@ class AdsImpl : public Ads,
 
   void MaybeTopUpUnblindedTokens();
 
-  // AccountObserver implementation
+  // AccountObserver:
   void OnWalletDidUpdate(const WalletInfo& wallet) override;
   void OnWalletDidChange(const WalletInfo& wallet) override;
   void OnInvalidWallet() override;
   void OnStatementOfAccountsDidChange() override;
 
-  // AdServerObserver implementation
+  // AdServerObserver:
   void OnCatalogUpdated(const Catalog& catalog) override;
 
-  // AdNotificationServingObserver implementation
+  // AdNotificationServingObserver:
   void OnDidServeAdNotification(const AdNotificationInfo& ad) override;
 
-  // AdNotificationObserver implementation
+  // AdNotificationObserver:
   void OnAdNotificationViewed(const AdNotificationInfo& ad) override;
   void OnAdNotificationClicked(const AdNotificationInfo& ad) override;
   void OnAdNotificationDismissed(const AdNotificationInfo& ad) override;
@@ -296,7 +298,7 @@ class AdsImpl : public Ads,
       const std::string& uuid,
       const mojom::AdNotificationEventType event_type) override;
 
-  // NewTabPageAdObserver implementation
+  // NewTabPageAdObserver:
   void OnNewTabPageAdViewed(const NewTabPageAdInfo& ad) override;
   void OnNewTabPageAdClicked(const NewTabPageAdInfo& ad) override;
   void OnNewTabPageAdEventFailed(
@@ -304,7 +306,7 @@ class AdsImpl : public Ads,
       const std::string& creative_instance_id,
       const mojom::NewTabPageAdEventType event_type) override;
 
-  // PromotedContentAdObserver implementation
+  // PromotedContentAdObserver:
   void OnPromotedContentAdViewed(const PromotedContentAdInfo& ad) override;
   void OnPromotedContentAdClicked(const PromotedContentAdInfo& ad) override;
   void OnPromotedContentAdEventFailed(
@@ -312,10 +314,10 @@ class AdsImpl : public Ads,
       const std::string& creative_instance_id,
       const mojom::PromotedContentAdEventType event_type) override;
 
-  // InlineContentAdServingObserver implementation
+  // InlineContentAdServingObserver:
   void OnDidServeInlineContentAd(const InlineContentAdInfo& ad) override;
 
-  // InlineContentAdObserver implementation
+  // InlineContentAdObserver:
   void OnInlineContentAdViewed(const InlineContentAdInfo& ad) override;
   void OnInlineContentAdClicked(const InlineContentAdInfo& ad) override;
   void OnInlineContentAdEventFailed(
@@ -323,13 +325,13 @@ class AdsImpl : public Ads,
       const std::string& creative_instance_id,
       const mojom::InlineContentAdEventType event_type) override;
 
-  // AdTransferObserver implementation
+  // AdTransferObserver:
   void OnWillTransferAd(const AdInfo& ad, const base::Time& time) override;
   void OnDidTransferAd(const AdInfo& ad) override;
   void OnCancelledAdTransfer(const AdInfo& ad, const int32_t tab_id) override;
   void OnFailedToTransferAd(const AdInfo& ad) override;
 
-  // ConversionsObserver implementation
+  // ConversionsObserver:
   void OnConversion(
       const ConversionQueueItemInfo& conversion_queue_item) override;
 };

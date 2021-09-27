@@ -19,8 +19,10 @@ export default class APIProxy {
   ercTokenRegistry: ERCTokenRegistry
   keyringController: KeyringController
   ethTxController: EthTxController
+  braveWalletService: BraveWalletService
   addEthJsonRpcControllerObserver: (store: any) => void
   addKeyringControllerObserver: (store: any) => void
   addEthTxControllerObserverObserver: (store: any) => void
   makeTxData: (nonce: string, gasPrice: string, gasLimit: string, to: string, value: string) => any
+  getKeyringsByType: (type: string) => any
 }

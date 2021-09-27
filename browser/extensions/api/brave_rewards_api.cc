@@ -751,12 +751,10 @@ BraveRewardsSaveRecurringTipFunction::Run() {
   return RespondLater();
 }
 
-void BraveRewardsSaveRecurringTipFunction::OnSaveRecurringTip(bool success) {
-  if (!success) {
-    Respond(Error("Failed to save"));
-    return;
-  }
-  Respond(NoArguments());
+void BraveRewardsSaveRecurringTipFunction::OnSaveRecurringTip(
+    ledger::type::Result result) {
+  Respond(result == ledger::type::Result::LEDGER_OK ? NoArguments()
+                                                    : Error("Failed to save"));
 }
 
 BraveRewardsRemoveRecurringTipFunction::
@@ -1047,6 +1045,7 @@ void BraveRewardsGetExternalWalletFunction::OnGetExternalWallet(
   data.SetStringKey("userName", wallet->user_name);
   data.SetStringKey("accountUrl", wallet->account_url);
   data.SetStringKey("loginUrl", wallet->login_url);
+  data.SetStringKey("activityUrl", wallet->activity_url);
 
   Respond(TwoArguments(base::Value(static_cast<int>(result)), std::move(data)));
 }
@@ -1109,7 +1108,7 @@ BraveRewardsGetAdsAccountStatementFunction::Run() {
 
 void BraveRewardsGetAdsAccountStatementFunction::OnGetAdsAccountStatement(
     const bool success,
-    const int64_t next_payment_date,
+    const double next_payment_date,
     const int ads_received_this_month,
     const double earnings_this_month,
     const double earnings_last_month) {

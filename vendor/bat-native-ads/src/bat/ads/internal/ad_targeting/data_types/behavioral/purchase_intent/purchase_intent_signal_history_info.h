@@ -9,12 +9,14 @@
 #include <cstdint>
 #include <string>
 
+#include "base/time/time.h"
+
 namespace ads {
 namespace ad_targeting {
 
-struct PurchaseIntentSignalHistoryInfo {
+struct PurchaseIntentSignalHistoryInfo final {
   PurchaseIntentSignalHistoryInfo();
-  PurchaseIntentSignalHistoryInfo(const int64_t timestamp_in_seconds,
+  PurchaseIntentSignalHistoryInfo(const base::Time& created_at,
                                   const uint16_t weight);
   PurchaseIntentSignalHistoryInfo(const PurchaseIntentSignalHistoryInfo& info);
   ~PurchaseIntentSignalHistoryInfo();
@@ -25,7 +27,7 @@ struct PurchaseIntentSignalHistoryInfo {
   std::string ToJson() const;
   bool FromJson(const std::string& json);
 
-  int64_t timestamp_in_seconds = 0;
+  base::Time created_at;
   uint16_t weight = 0;
 };
 

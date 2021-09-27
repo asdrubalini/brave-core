@@ -73,6 +73,7 @@ const locale = {
   buy: 'Buy',
   send: 'Send',
   swap: 'Swap',
+  bssToolTip: 'not supported',
 
   // Buttons
   buttonContinue: 'Continue',
@@ -83,7 +84,7 @@ const locale = {
   // Wallet Onboarding Welcome
   welcomeTitle: 'DeFi & Secure Crypto Storage',
   welcomeDescription: 'Hold crypto in your custody. Trade assets, and interact with web 3 apps. Track portfolio performance, invest, borrow, and lend with DeFi.',
-  welcomeButton: 'Setup Crypto',
+  welcomeButton: 'Get Started',
   welcomeRestoreButton: 'Restore',
 
   // Backup Wallet Intro
@@ -108,11 +109,11 @@ const locale = {
 
   // Create Password
   createPasswordTitle: 'Secure your crypto with a password',
-  createPasswordDescription: 'Password must be at least 7 characters containing at least one number and a special character',
+  createPasswordDescription: 'Passwords must be at least 7 characters containing at least one number and a special character.',
   createPasswordInput: 'Password',
-  createPasswordInput2: 'Re-Type Password',
-  createPasswordError: 'Password must be 7 or more characters',
-  createPasswordError2: 'Re-typed password does not match',
+  confirmPasswordInput: 'Re-Type Password',
+  createPasswordError: 'Passwords must be at least 7 characters containing at least one number and a special character.',
+  confirmPasswordError: 'Re-typed password does not match',
 
   // Lock Screen
   lockScreenTitle: 'Enter password to unlock wallet',
@@ -146,7 +147,7 @@ const locale = {
   accountsSecondary: 'Secondary Accounts',
   accountsSecondaryDisclaimer: 'These accounts can be used with web 3 dapps and can be shown in your portfolio, however, they cannot not be restored via recovery phrase from your primary account backup. Enable Brave Sync accounts to auto-restore secondary accounts.',
   accountsAssets: 'Assets',
-  accountsEditVisibleAssets: 'Edit visible assets',
+  accountsEditVisibleAssets: 'Visible assets',
 
   // Add Account Options
   addAccountCreate: 'Create',
@@ -179,6 +180,7 @@ const locale = {
   switchHDPathTextHardwareWallet: 'Try switching HD path (above) if you cannot find the account you are looking for.',
   ledgerLiveDerivationPath: 'Ledger Live',
   ledgerLegacyDerivationPath: 'Legacy (MEW/MyCrypto)',
+  unknownInternalError: 'Unknown error, please reconnect device and try again',
 
   // Account Settings Modal
   accountSettingsDetails: 'Details',
@@ -186,8 +188,16 @@ const locale = {
   accountSettingsPrivateKey: 'Private Key',
   accountSettingsSave: 'Save',
   accountSettingsRemove: 'Remove Account',
-  watchlistButton: 'Save Account Watchlist',
+  watchlistAddCustomAsset: 'Add custom asset',
+  watchListTokenName: 'Token name',
+  watchListTokenAddress: 'Token contract address',
+  watchListTokenSymbol: 'Token symbol',
+  watchListTokenDecimals: 'Decimals of Percision',
+  watchListAdd: 'Add',
+  watchListSuggestion: 'as a custtom token',
+  watchListNoAsset: 'No assets named',
   watchListSearchPlaceholder: 'Search tokens or contract address',
+  watchListError: 'Failed to add custom token, please try again.',
   accountSettingsDisclaimer: 'Warning: Never disclose this key. Anyone with your private key can steal any assets held in your account.',
   accountSettingsShowKey: 'Show Key',
   accountSettingsHideKey: 'Hide Key',
@@ -234,6 +244,8 @@ const locale = {
 
   // Sign Transaction Panel
   signTransactionTitle: 'Your signature is being requested',
+  braveWalletSignWarning: 'Note that Brave can’t verify what will happen if you sign. A signature could authorize nearly any operation in your account or on your behalf, including (but not limited to) giving total control of your account and crypto assets to the site making the request. Only sign if you’re sure you want to take this action, and trust the requesting site.',
+  braveWalletSignWarningTitle: 'Sign at your own risk',
   signTransactionMessageTitle: 'Message',
   signTransactionButton: 'Sign',
 
@@ -268,7 +280,7 @@ const locale = {
   confirmTransactionNoData: 'No Data.',
 
   // Wallet Main Panel
-  panelTitle: 'Crypto',
+  panelTitle: 'Brave Wallet',
   panelConnected: 'Connected',
   panelNotConnected: 'Not Connected',
 
@@ -282,7 +294,37 @@ const locale = {
   connectWithSiteDescription1: 'View the addressess of your',
   connectWithSiteDescription2: 'permitted accounts (required)',
   connectWithSiteNext: 'Next',
-  connectWithSiteHeaderTitle: 'Connect With Brave Wallet'
+  connectWithSiteHeaderTitle: 'Connect With Brave Wallet',
+
+  // Import from external wallets
+  braveWalletImportFromExternalNewPassword: 'A more secure password is required for Brave Wallet',
+  braveWalletImportFromExternalCreatePassword: 'Set a Brave Wallet password',
+  braveWalletImportFromExternalPasswordCheck: 'Use the same password',
+
+  // Import from MetaMask
+  importMetaMaskTitle: 'Import from MetaMask',
+  importMetaMaskDescription: 'Import your MetaMask HD wallet, assets, and settings, into Brave Wallet. Enjoy a faster and more secure way to manage crypto, interact with DeFi. With more assets support like Doge, Bitcoin, Solana.',
+  importMetaMaskInput: 'Enter your MetaMask password',
+
+  // Import from Legacy Wallet
+  importBraveLegacyTitle: 'Existing Crypto Wallets detected',
+  importBraveLegacyDescription: 'Enter your existing crypto wallet password to update. Enjoy a faster and more secure way to manage crypto, interact with DeFi. With more assets support like Doge, Bitcoin, Solana.',
+  importBraveLegacyInput: 'Enter your crypto wallets password',
+  importBraveLegacyAltButton: 'I’ve lost my password and recovery phrase',
+
+  // Connect Hardware Wallet Panel
+  connectHardwarePanelConnected: 'connected',
+  connectHardwarePanelDisconnected: 'disconnected',
+  connectHardwarePanelInstructions: 'Instructions',
+  connectHardwarePanelConnect: 'Connect your',
+  connectHardwarePanelConfirmation: 'Device requires transaction confirmation',
+
+  // Transaction List Item
+  transactionSent: 'sent',
+  transactionReceived: 'received',
+  transactionExplorerMissing: 'No block explorer url defined.',
+  transactionExplorer: 'View on Block Explorer',
+  transactionPlaceholder: 'Transactions will appear here'
 }
 
 export default locale

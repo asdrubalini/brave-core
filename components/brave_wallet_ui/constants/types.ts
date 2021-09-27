@@ -158,8 +158,7 @@ export interface WalletState {
   selectedAccount: WalletAccountType
   selectedNetwork: EthereumChain
   accounts: WalletAccountType[]
-  transactions: RPCTransactionType[]
-  userVisibleTokens: string[]
+  transactions: TransactionListInfo[]
   userVisibleTokensInfo: TokenInfo[]
   fullTokenList: TokenInfo[]
   portfolioPriceHistory: PriceDataObjectType[]
@@ -170,6 +169,7 @@ export interface WalletState {
   selectedPortfolioTimeline: AssetPriceTimeframe
   networkList: EthereumChain[]
   transactionSpotPrices: AssetPriceInfo[]
+  addUserAssetError: boolean
 }
 
 export interface PanelState {
@@ -180,7 +180,6 @@ export interface PanelState {
   panelTitle: string
   tabId: number
   connectingAccounts: string[]
-  showSignTransaction: boolean
   networkPayload: EthereumChain
 }
 
@@ -201,6 +200,9 @@ export interface PageState {
   showIsRestoring: boolean
   importError: boolean
   showAddModal: boolean
+  swapQuote?: SwapResponse
+  isCryptoWalletsInstalled: boolean
+  isMetaMaskInstalled: boolean
 }
 
 export interface WalletPageState {
@@ -213,10 +215,19 @@ export interface WalletPanelState {
   panel: PanelState
 }
 
+export const kLedgerHardwareVendor = 'Ledger'
+export const kTrezorHardwareVendor = 'Trezor'
+
+export interface HardwareInfo {
+  vendor: string
+  path: string
+}
+
 export interface AccountInfo {
   address: string
   name: string
   isImported: boolean
+  hardware?: HardwareInfo
 }
 
 export interface WalletInfo {
@@ -297,8 +308,9 @@ export interface SwapResponse {
 }
 
 export interface SwapResponseReturnInfo {
-  success: boolean,
-  response: SwapResponse
+  success: boolean
+  response: SwapResponse | undefined
+  errorResponse: string
 }
 
 export interface GetNetworkReturnInfo {
@@ -350,7 +362,9 @@ export interface TokenInfo {
   isErc721: boolean
   symbol: string
   decimals: number
+  visible?: boolean
   icon?: string
+  logo?: string
 }
 
 export interface GetTokenByContractReturnInfo {
@@ -388,13 +402,22 @@ export interface PortfolioTokenHistoryAndInfo {
   token: AccountAssetOptionType
 }
 
-export interface SendTransactionParam {
+export interface SendTransactionParams {
   from: string
   to: string
+  gas?: string
+  gasPrice?: string
   value: string
+  data?: number[]
+}
+
+export interface ER20TransferParams {
+  from: string
+  to: string
   contractAddress: string
-  gasPrice: string
-  gasLimit: string
+  gas?: string
+  gasPrice?: string
+  value: string
 }
 
 export interface CreateWalletReturnInfo {
@@ -433,15 +456,30 @@ export class TxData1559 {
 export interface AddUnapprovedTransactionReturnInfo {
   success: boolean
   txMetaId: string
+  errorMessage: string
 }
 
 export interface AddUnapproved1559TransactionReturnInfo {
   success: boolean
   txMetaId: string
+  errorMessage: string
+}
+
+export interface SetGasPriceAndLimitForUnapprovedTransactionReturnInfo {
+  success: boolean
 }
 
 export interface ApproveTransactionReturnInfo {
   status: boolean
+}
+
+export interface ProcessLedgerSignatureReturnInfo {
+  status: boolean
+}
+
+export interface ApproveHardwareTransactionReturnInfo {
+  success: boolean
+  message: string
 }
 
 export interface RejectTransactionReturnInfo {
@@ -469,6 +507,11 @@ export interface TransactionInfo {
   txArgs: string[]
 }
 
+export interface TransactionListInfo {
+  account: UserAccountType
+  transactions: TransactionInfo[]
+}
+
 export interface GetAllTransactionInfoReturnInfo {
   transactionInfos: TransactionInfo[]
 }
@@ -476,11 +519,14 @@ export interface GetAllTransactionInfoReturnInfo {
 export interface EthTxController {
   addUnapprovedTransaction: (txData: TxData, from: string) => Promise<AddUnapprovedTransactionReturnInfo>
   addUnapproved1559Transaction: (txData: TxData1559, from: string) => (AddUnapproved1559TransactionReturnInfo)
+  setGasPriceAndLimitForUnapprovedTransaction: (txMetaId: string, gasPrice: string, gasLimit: string) => Promise<SetGasPriceAndLimitForUnapprovedTransactionReturnInfo>
   approveTransaction: (txMetaId: string) => Promise<ApproveTransactionReturnInfo>
   rejectTransaction: (txMetaId: string) => Promise<RejectTransactionReturnInfo>
   makeERC20TransferData: (toAddress: string, amount: string) => Promise<MakeERC20TransferDataReturnInfo>
   makeERC20ApproveData: (spenderAddress: string, amount: string) => Promise<MakeERC20ApproveDataReturnInfo>
   getAllTransactionInfo: (fromAddress: string) => Promise<GetAllTransactionInfoReturnInfo>
+  approveHardwareTransaction: (txMetaId: string) => Promise<ApproveHardwareTransactionReturnInfo>
+  processLedgerSignature: (txMetaId: string, v: string, r: string, s: string) => Promise<ProcessLedgerSignatureReturnInfo>
 }
 
 export interface EthJsonRpcController {
@@ -511,6 +557,40 @@ export interface KeyringController {
   lock: () => Promise<void>
   unlock: (password: string) => Promise<UnlockReturnInfo>
   addAccount: (accountName: string) => Promise<AddAccountReturnInfo>
+  getHardwareAccounts: () => Promise<{ accounts: AccountInfo[] }>
+}
+
+export interface GetUserAssetsReturnInfo {
+  tokens: TokenInfo[]
+}
+
+export interface AddUserAssetReturnInfo {
+  success: boolean
+}
+
+export interface RemoveUserAssetReturnInfo {
+  success: boolean
+}
+
+export interface SetUserAssetVisibleReturnInfo {
+  success: boolean
+}
+
+export enum DefaultWallet {
+  Ask,
+  None,
+  CryptoWallets,
+  Metamask,
+  BraveWallet
+}
+
+export interface BraveWalletService {
+  getUserAssets: (chainId: string) => Promise<GetUserAssetsReturnInfo>
+  addUserAsset: (token: TokenInfo, chainId: string) => Promise<AddUserAssetReturnInfo>
+  removeUserAsset: (contractAddress: string, chainId: string) => Promise<RemoveUserAssetReturnInfo>
+  setUserAssetVisible: (contractAddress: string, chainId: string, visible: boolean) => Promise<SetUserAssetVisibleReturnInfo>
+  getDefaultWallet: () => Promise<DefaultWallet>
+  setDefaultWallet: (defaultWallet: DefaultWallet) => Promise<void>
 }
 
 export interface RecoveryObject {
@@ -568,6 +648,8 @@ export interface APIProxyControllers {
   keyringController: KeyringController
   ercTokenRegistry: ERCTokenRegistry
   ethTxController: EthTxController
+  braveWalletService: BraveWalletService
+  getKeyringsByType: (type: string) => any
   makeTxData: (nonce: string, gasPrice: string, gasLimit: string, to: string, value: string, data: number[]) => any
 }
 
@@ -595,6 +677,20 @@ export const kRopstenChainId = '0x3'
 export const kGoerliChainId = '0x5'
 export const kKovanChainId = '0x2a'
 export const kLocalhostChainId = '0x539'
+
+export const BuySupportedChains = [
+  kMainnetChainId,
+  kRinkebyChainId,
+  kRopstenChainId,
+  kGoerliChainId,
+  kKovanChainId,
+  kLocalhostChainId
+]
+
+export const SwapSupportedChains = [
+  kMainnetChainId,
+  kRopstenChainId
+]
 
 // Keep in sync with components/brave_wallet/common/brave_wallet.mojom until
 // we auto generate this type file from mojo.
@@ -627,4 +723,24 @@ export type UpdateAccountNamePayloadType = {
   address: string,
   name: string,
   isDerived: boolean
+}
+
+export enum WalletOnboardingSteps {
+  OnboardingWelcome = 0,
+  OnboardingCreatePassword = 1,
+  OnboardingBackupWallet = 2,
+  OnboardingImportMetaMask = 3,
+  OnboardingImportCryptoWallets = 4
+}
+
+export enum WalletRoutes {
+  Unlock = '/crypto/unlock',
+  Onboarding = '/crypto/onboarding',
+  Restore = '/crypto/restore-wallet',
+  Portfolio = '/crypto/portfolio',
+  PortfolioSub = '/crypto/portfolio/:id?',
+  Accounts = '/crypto/accounts',
+  AccountsSub = '/crypto/accounts/:id?',
+  Backup = '/crypto/backup-wallet',
+  CryptoPage = '/crypto/:category/:id?'
 }

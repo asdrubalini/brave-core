@@ -6,7 +6,8 @@
 import {
   AppObjectType,
   AccountInfo,
-  TransactionInfo
+  TransactionInfo,
+  TokenInfo
 } from '../../constants/types'
 
 export type InitializedPayloadType = {
@@ -22,10 +23,6 @@ export type UnlockWalletPayloadType = {
   password: string
 }
 
-export type SetInitialVisibleTokensPayloadType = {
-  visibleAssets: string[]
-}
-
 export type ChainChangedEventPayloadType = {
   chainId: string
 }
@@ -34,6 +31,26 @@ export type NewUnapprovedTxAdded = {
   txInfo: TransactionInfo
 }
 
+export type UnapprovedTxUpdated = {
+  txInfo: TransactionInfo
+}
+
 export type TransactionStatusChanged = {
   txInfo: TransactionInfo
+}
+
+export type AddUserAssetPayloadType = {
+  token: TokenInfo
+  chainId: string
+}
+
+export type RemoveUserAssetPayloadType = {
+  contractAddress: string
+  chainId: string
+}
+
+export type SetUserAssetVisiblePayloadType = {
+  contractAddress: string
+  chainId: string
+  isVisible: boolean
 }

@@ -6,31 +6,25 @@
 #ifndef BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CONVERSION_QUEUE_DATABASE_TABLE_H_
 #define BRAVE_VENDOR_BAT_NATIVE_ADS_SRC_BAT_ADS_INTERNAL_DATABASE_TABLES_CONVERSION_QUEUE_DATABASE_TABLE_H_
 
-#include <functional>
 #include <string>
 
-#include "bat/ads/ads_client.h"
-#include "bat/ads/internal/conversions/conversion_queue_item_info.h"
+#include "base/check_op.h"
+#include "bat/ads/ads_client_aliases.h"
+#include "bat/ads/internal/conversions/conversion_queue_item_info_aliases.h"
 #include "bat/ads/internal/database/database_table.h"
+#include "bat/ads/internal/database/tables/conversion_queue_database_table_aliases.h"
 #include "bat/ads/public/interfaces/ads.mojom.h"
 
 namespace ads {
 
-using GetConversionQueueCallback =
-    std::function<void(const bool, const ConversionQueueItemList&)>;
-
-using GetConversionQueueForCreativeInstanceIdCallback =
-    std::function<void(const bool,
-                       const std::string& creative_instance_id,
-                       const ConversionQueueItemList&)>;
+struct ConversionQueueItemInfo;
 
 namespace database {
 namespace table {
 
-class ConversionQueue : public Table {
+class ConversionQueue final : public Table {
  public:
   ConversionQueue();
-
   ~ConversionQueue() override;
 
   void Save(const ConversionQueueItemList& conversion_queue_items,
@@ -45,9 +39,13 @@ class ConversionQueue : public Table {
       const std::string& creative_instance_id,
       GetConversionQueueForCreativeInstanceIdCallback callback);
 
-  void set_batch_size(const int batch_size);
+  void set_batch_size(const int batch_size) {
+    DCHECK_GT(batch_size, 0);
 
-  std::string get_table_name() const override;
+    batch_size_ = batch_size;
+  }
+
+  std::string GetTableName() const override;
 
   void Migrate(mojom::DBTransaction* transaction,
                const int to_version) override;

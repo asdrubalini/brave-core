@@ -27,6 +27,7 @@
 #include "components/gcm_driver/gcm_buildflags.h"
 #include "components/omnibox/browser/omnibox_prefs.h"
 #include "components/search_engines/search_engines_pref_names.h"
+#include "extensions/buildflags/buildflags.h"
 
 #if BUILDFLAG(ENABLE_BRAVE_WAYBACK_MACHINE)
 #include "brave/components/brave_wayback_machine/pref_names.h"
@@ -66,6 +67,10 @@
 
 #if BUILDFLAG(ENABLE_FTX)
 #include "brave/components/ftx/common/pref_names.h"
+#endif
+
+#if BUILDFLAG(ENABLE_BRAVE_VPN)
+#include "brave/components/brave_vpn/pref_names.h"
 #endif
 
 namespace extensions {
@@ -134,7 +139,7 @@ const PrefsUtil::TypedPrefMap& BravePrefsUtil::GetAllowlistedKeys() {
   (*s_brave_allowlist)[kTabsSearchShow] =
       settings_api::PrefType::PREF_TYPE_BOOLEAN;
 #if BUILDFLAG(ENABLE_BRAVE_VPN)
-  (*s_brave_allowlist)[kBraveVPNShowButton] =
+  (*s_brave_allowlist)[brave_vpn::prefs::kBraveVPNShowButton] =
       settings_api::PrefType::PREF_TYPE_BOOLEAN;
 #endif
 #if BUILDFLAG(ENABLE_SIDEBAR)
@@ -172,6 +177,11 @@ const PrefsUtil::TypedPrefMap& BravePrefsUtil::GetAllowlistedKeys() {
 #endif
 #if BUILDFLAG(ENABLE_FTX)
   (*s_brave_allowlist)[kFTXNewTabPageShowFTX] =
+      settings_api::PrefType::PREF_TYPE_BOOLEAN;
+#endif
+#if BUILDFLAG(ENABLE_EXTENSIONS)
+  // Web discovery prefs
+  (*s_brave_allowlist)[kWebDiscoveryEnabled] =
       settings_api::PrefType::PREF_TYPE_BOOLEAN;
 #endif
   // Brave today prefs
@@ -214,10 +224,6 @@ const PrefsUtil::TypedPrefMap& BravePrefsUtil::GetAllowlistedKeys() {
   (*s_brave_allowlist)[kIPFSCompanionEnabled] =
       settings_api::PrefType::PREF_TYPE_BOOLEAN;
 
-#if BUILDFLAG(ETHEREUM_REMOTE_CLIENT_ENABLED)
-  (*s_brave_allowlist)[kERCLoadCryptoWalletsOnStartup] =
-      settings_api::PrefType::PREF_TYPE_BOOLEAN;
-#endif
   // Brave Wallet pref
 #if BUILDFLAG(BRAVE_WALLET_ENABLED)
   (*s_brave_allowlist)[kBraveWalletWeb3Provider] =

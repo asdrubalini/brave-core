@@ -667,10 +667,10 @@ TEST_F(KeyringControllerUnitTest, AccountMetasForKeyring) {
   const std::string name2 = "Account2";
   const std::string account_path2 = KeyringController::GetAccountPathByIndex(1);
 
-  KeyringController::SetAccountNameForKeyring(GetPrefs(), account_path1, name1,
-                                              "default");
-  KeyringController::SetAccountNameForKeyring(GetPrefs(), account_path2, name2,
-                                              "default");
+  KeyringController::SetAccountMetaForKeyring(GetPrefs(), account_path1, name1,
+                                              address1, "default");
+  KeyringController::SetAccountMetaForKeyring(GetPrefs(), account_path2, name2,
+                                              address2, "default");
 
   const base::Value* account_metas = KeyringController::GetPrefForKeyring(
       GetPrefs(), kAccountMetas, "default");
@@ -685,12 +685,20 @@ TEST_F(KeyringControllerUnitTest, AccountMetasForKeyring) {
   EXPECT_EQ(KeyringController::GetAccountNameForKeyring(
                 GetPrefs(), account_path1, "default"),
             name1);
+  EXPECT_EQ(KeyringController::GetAccountAddressForKeyring(
+                GetPrefs(), account_path1, "default"),
+            address1);
   EXPECT_EQ(KeyringController::GetAccountNameForKeyring(
                 GetPrefs(), account_path2, "default"),
             name2);
+  EXPECT_EQ(KeyringController::GetAccountAddressForKeyring(
+                GetPrefs(), account_path2, "default"),
+            address2);
   EXPECT_EQ(controller.GetAccountMetasNumberForKeyring("default"), 2u);
   EXPECT_EQ(controller.GetAccountMetasNumberForKeyring("keyring1"), 0u);
 
+  // GetAccountInfosForKeyring should work even if the keyring is locked
+  controller.Lock();
   std::vector<mojom::AccountInfoPtr> account_infos =
       controller.GetAccountInfosForKeyring("default");
   EXPECT_EQ(account_infos.size(), 2u);
@@ -1153,7 +1161,7 @@ TEST_F(KeyringControllerUnitTest, GetPrivateKeyForDefaultKeyringAccount) {
   EXPECT_TRUE(callback_called);
 }
 
-TEST_F(KeyringControllerUnitTest, SetDefaultKeyringDerivedAccountName) {
+TEST_F(KeyringControllerUnitTest, SetDefaultKeyringDerivedAccountMeta) {
   KeyringController controller(GetPrefs());
   const std::string kUpdatedName = "Updated";
   bool callback_called = false;
@@ -1176,16 +1184,22 @@ TEST_F(KeyringControllerUnitTest, SetDefaultKeyringDerivedAccountName) {
   const std::string name2 = "Account2";
   const std::string account_path2 = KeyringController::GetAccountPathByIndex(1);
 
-  KeyringController::SetAccountNameForKeyring(GetPrefs(), account_path1, name1,
-                                              "default");
-  KeyringController::SetAccountNameForKeyring(GetPrefs(), account_path2, name2,
-                                              "default");
+  KeyringController::SetAccountMetaForKeyring(GetPrefs(), account_path1, name1,
+                                              address1, "default");
+  KeyringController::SetAccountMetaForKeyring(GetPrefs(), account_path2, name2,
+                                              address2, "default");
   EXPECT_EQ(KeyringController::GetAccountNameForKeyring(
                 GetPrefs(), account_path1, "default"),
             name1);
+  EXPECT_EQ(KeyringController::GetAccountAddressForKeyring(
+                GetPrefs(), account_path1, "default"),
+            address1);
   EXPECT_EQ(KeyringController::GetAccountNameForKeyring(
                 GetPrefs(), account_path2, "default"),
             name2);
+  EXPECT_EQ(KeyringController::GetAccountAddressForKeyring(
+                GetPrefs(), account_path2, "default"),
+            address2);
 
   callback_called = false;
   controller.SetDefaultKeyringDerivedAccountName(
@@ -1396,6 +1410,94 @@ TEST_F(KeyringControllerUnitTest, RestoreLegacyBraveWallet) {
   verify_restore_wallet.Run(mnemonic12, "", true, false);
   verify_restore_wallet.Run(
       mnemonic12, "0x084DCb94038af1715963F149079cE011C4B22961", false, true);
+}
+
+TEST_F(KeyringControllerUnitTest, HardwareAccounts) {
+  KeyringController controller(GetPrefs());
+  controller.CreateWallet("brave", base::DoNothing::Once<const std::string&>());
+  base::RunLoop().RunUntilIdle();
+
+  std::vector<mojom::HardwareWalletAccountPtr> new_accounts;
+  new_accounts.push_back(mojom::HardwareWalletAccount::New(
+      "0x111", "m/44'/60'/1'/0/0", "name 1", "Ledger"));
+  new_accounts.push_back(mojom::HardwareWalletAccount::New(
+      "0x264", "m/44'/60'/2'/0/0", "name 2", "Ledger"));
+  new_accounts.push_back(mojom::HardwareWalletAccount::New(
+      "0xEA0", "m/44'/60'/3'/0/0", "name 3", "Ledger"));
+
+  controller.AddHardwareAccounts(std::move(new_accounts));
+  base::RunLoop().RunUntilIdle();
+  ASSERT_TRUE(GetPrefs()
+                  ->GetDictionary(kBraveWalletKeyrings)
+                  ->FindPath("hardware.Ledger4235202380.account_metas.0x111"));
+
+  bool callback_called = false;
+  controller.GetHardwareAccounts(base::BindLambdaForTesting(
+      [&](std::vector<mojom::AccountInfoPtr> accounts) {
+        EXPECT_EQ(accounts.size(), size_t(3));
+
+        EXPECT_EQ(accounts[0]->address, "0x111");
+        EXPECT_EQ(accounts[0]->name, "name 1");
+        EXPECT_EQ(accounts[0]->is_imported, false);
+        ASSERT_TRUE(accounts[0]->hardware);
+
+        EXPECT_EQ(accounts[1]->address, "0x264");
+        EXPECT_EQ(accounts[1]->name, "name 2");
+        EXPECT_EQ(accounts[1]->is_imported, false);
+        ASSERT_TRUE(accounts[1]->hardware);
+
+        EXPECT_EQ(accounts[2]->address, "0xEA0");
+        EXPECT_EQ(accounts[2]->name, "name 3");
+        EXPECT_EQ(accounts[2]->is_imported, false);
+        ASSERT_TRUE(accounts[2]->hardware);
+
+        callback_called = true;
+      }));
+  base::RunLoop().RunUntilIdle();
+  EXPECT_TRUE(callback_called);
+
+  controller.RemoveHardwareAccount("0x111");
+  base::RunLoop().RunUntilIdle();
+
+  ASSERT_FALSE(GetPrefs()
+                   ->GetDictionary(kBraveWalletKeyrings)
+                   ->FindPath("hardware.Ledger4235202380.account_metas.0x111"));
+
+  ASSERT_TRUE(GetPrefs()
+                  ->GetDictionary(kBraveWalletKeyrings)
+                  ->FindPath("hardware.Ledger4235202380.account_metas.0x264"));
+
+  ASSERT_TRUE(GetPrefs()
+                  ->GetDictionary(kBraveWalletKeyrings)
+                  ->FindPath("hardware.Ledger4235202380.account_metas.0xEA0"));
+
+  controller.RemoveHardwareAccount("0x264");
+  base::RunLoop().RunUntilIdle();
+
+  callback_called = false;
+  controller.GetHardwareAccounts(base::BindLambdaForTesting(
+      [&](std::vector<mojom::AccountInfoPtr> accounts) {
+        EXPECT_EQ(accounts.size(), size_t(1));
+
+        EXPECT_EQ(accounts[0]->address, "0xEA0");
+        EXPECT_EQ(accounts[0]->name, "name 3");
+        EXPECT_EQ(accounts[0]->is_imported, false);
+        ASSERT_TRUE(accounts[0]->hardware);
+
+        callback_called = true;
+      }));
+  base::RunLoop().RunUntilIdle();
+  EXPECT_TRUE(callback_called);
+  controller.RemoveHardwareAccount("0xEA0");
+  base::RunLoop().RunUntilIdle();
+
+  ASSERT_FALSE(GetPrefs()
+                   ->GetDictionary(kBraveWalletKeyrings)
+                   ->FindPath("hardware.Ledger4235202380.account_metas.0xEA0"));
+
+  ASSERT_FALSE(GetPrefs()
+                   ->GetDictionary(kBraveWalletKeyrings)
+                   ->FindPath("hardware.Ledger4235202380"));
 }
 
 }  // namespace brave_wallet
